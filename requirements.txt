@@ -12,3 +12,6 @@ dbt-core==1.8.9
 dbt-postgres==1.8.2
 qdrant-client==1.12.1
 openai==1.59.6
+google-generativeai==0.8.3
+tenacity==9.0.0
+
