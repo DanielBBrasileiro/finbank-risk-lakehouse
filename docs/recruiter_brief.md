@@ -9,10 +9,11 @@ The project is intentionally recruiter-friendly: it can run locally, includes te
 ## What Makes It Professional
 
 - End-to-end local path: synthetic banking data -> Rust validation -> PostgreSQL -> dbt marts -> dashboard -> AI evals.
+- Local lakehouse path: raw CSV -> Bronze CSV/Parquet -> Silver standardized Parquet -> Gold risk feature artifacts.
 - dbt is used for more than transformations: tests, documentation, lineage and downstream exposures are included.
 - Data contracts are enforced before warehouse loading through a Rust CLI.
-- Dagster assets make the pipeline graph explicit for operational review.
-- AI is governed: offline mode, retrieval over trusted metadata, SQL guardrails and deterministic evaluation cases.
+- Dagster assets and an optional Airflow DAG make orchestration visible from two market-recognized angles.
+- AI is governed: offline mode, retrieval over trusted metadata, SQL guardrails, audit JSONL and deterministic evaluation cases.
 - Cloud is cost-aware: Terraform and DDL are present, but the public demo does not require paid resources.
 
 ## Technical Stack
@@ -22,7 +23,9 @@ The project is intentionally recruiter-friendly: it can run locally, includes te
 - Docker Compose, PostgreSQL, MinIO, Qdrant
 - dbt Core and dbt-postgres
 - Dagster OSS
+- Apache Airflow optional local DAG
 - Streamlit and Plotly
+- Parquet/pyarrow local lakehouse artifacts
 - AWS S3 Terraform blueprint
 - Snowflake DDL
 - Databricks/Spark/Delta notebook
@@ -35,7 +38,8 @@ The project is intentionally recruiter-friendly: it can run locally, includes te
 3. The local-first design keeps the demo reproducible while cloud artifacts show production thinking.
 4. The AI layer is a controlled analyst copilot, not an unrestricted chatbot.
 5. The repo shows engineering discipline: automated tests, linting, CI, Makefile commands and documented tradeoffs.
+6. The architecture follows Reis and Housley's lifecycle framing: generation, ingestion, storage, transformation and serving, with governance/DataOps undercurrents made explicit.
 
 ## Current Scope
 
-The repo is a professional portfolio MVP. It does not claim to be a production bank system. Streaming, full OpenLineage/Marquez deployment, real Snowflake execution and Databricks jobs are intentionally left as next-stage enhancements.
+The repo is a professional portfolio MVP. It does not claim to be a production bank system. Real Snowflake execution, managed Databricks jobs, OpenLineage/Marquez and production-grade streaming are intentionally optional next-stage enhancements.

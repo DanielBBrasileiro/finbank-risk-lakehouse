@@ -43,6 +43,23 @@ models:
         data_tests:
           - not_null
 
+  - name: mart_credit_macro_context
+    description: Portfolio exposure summarized against the latest BCB macroeconomic context.
+    columns:
+      - name: macro_observation_date
+        description: Latest macroeconomic observation date available in the local raw source.
+        data_tests:
+          - not_null
+      - name: portfolio_status
+        description: Derived credit risk status from the customer exposure mart.
+        data_tests:
+          - accepted_values:
+              values: ["PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+      - name: total_outstanding_balance
+        description: Outstanding balance by portfolio status under the latest macro context.
+        data_tests:
+          - not_null
+
 exposures:
   - name: streamlit_risk_dashboard
     label: FinBank Risk Intelligence Dashboard
@@ -53,6 +70,7 @@ exposures:
     depends_on:
       - ref('mart_customer_exposure')
       - ref('mart_daily_transactions')
+      - ref('mart_credit_macro_context')
     owner:
       name: Daniel Brasileiro
       email: portfolio@example.com
@@ -65,6 +83,7 @@ exposures:
     depends_on:
       - ref('mart_customer_exposure')
       - ref('mart_daily_transactions')
+      - ref('mart_credit_macro_context')
     owner:
       name: Daniel Brasileiro
       email: portfolio@example.com

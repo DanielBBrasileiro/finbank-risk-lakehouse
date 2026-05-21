@@ -20,6 +20,7 @@ The copilot is designed to answer questions about trusted project assets:
 - Multi-statement SQL is rejected.
 - Destructive keywords such as `delete`, `drop`, `truncate`, `insert` and `update` are blocked.
 - A default row limit is appended or enforced.
+- Audit records can be persisted to JSONL with `AI_AUDIT_PATH`, including question, citations, guarded SQL, response and status.
 - Evaluation cases run from `ai/evals/risk_copilot.yml`.
 
 ## Why This Matters For Recruiters
@@ -36,12 +37,12 @@ The goal is not to show that an LLM can produce text. The goal is to show that A
 
 ```bash
 AI_DEMO_MODE=1 make ai-eval
-AI_DEMO_MODE=1 make run-dashboard
+AI_DEMO_MODE=1 AI_AUDIT_PATH=data/ai_audit/copilot_audit.jsonl make run-dashboard
 ```
 
 ## Future Enhancements
 
-- Store question, retrieved sources, guarded SQL and response in an audit table.
+- Promote JSONL audit records into a warehouse-backed audit table.
 - Add LLM provider abstraction for Gemini, OpenAI and local models.
 - Add query result validation before final natural-language response.
 - Add benchmark cases for hallucination and refusal quality.

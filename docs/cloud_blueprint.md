@@ -4,6 +4,8 @@
 
 The public portfolio demo is local-first and cost-free. Cloud artifacts show that the project can be moved to a modern stack without requiring paid infrastructure for every reviewer.
 
+This follows the FinOps emphasis in Reis and Housley: cost is an architecture concern, not a cleanup task after the platform is already running.
+
 ## AWS
 
 `infra/aws` defines a private S3 bucket intended for lakehouse object storage:
@@ -28,7 +30,7 @@ terraform plan -var="bucket_name=<globally-unique-demo-bucket>"
 
 ## Snowflake
 
-`snowflake/ddl/create_raw_tables.sql` creates the `FINBANK` database, raw schemas and mart table definitions. The dbt local profile uses PostgreSQL; a Snowflake target can be added with environment variables when a trial account is available.
+`snowflake/ddl/create_raw_tables.sql` creates the `FINBANK` database, raw schemas and mart table definitions. The dbt local profile uses PostgreSQL by default; `dbt/profiles.yml` also includes an optional Snowflake target controlled by environment variables when a trial account is available.
 
 ## Databricks
 
@@ -41,3 +43,4 @@ terraform plan -var="bucket_name=<globally-unique-demo-bucket>"
 - Use lifecycle cleanup for demo S3 data.
 - Do not store credentials in the repo.
 - Document optional cloud execution honestly in README and LinkedIn posts.
+- Treat AWS, Snowflake and Databricks as optional proof-of-readiness paths, not requirements for a reviewer to run the portfolio.

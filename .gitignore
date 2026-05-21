@@ -4,11 +4,16 @@ __pycache__/
 .env
 data/raw/*.csv
 data/bronze/
+data/ai_audit/
+data/lakehouse/
+data/streaming/
 data/processed/*.csv
 target/
 dbt/target/
 dbt/dbt_packages/
 dbt/.user.yml
+orchestration/airflow/logs/
+orchestration/airflow/plugins/
 *.log
 .DS_Store
 venv/

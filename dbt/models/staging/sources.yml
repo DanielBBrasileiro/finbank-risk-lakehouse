@@ -8,6 +8,7 @@ sources:
       - name: accounts
       - name: transactions
       - name: loans
+      - name: macro_indicators
 
 models:
   - name: stg_customers
@@ -40,3 +41,18 @@ models:
         data_tests:
           - accepted_values:
               values: ["AA", "A", "B", "C", "D", "E"]
+
+  - name: stg_macro_indicators
+    description: Normalized BCB macroeconomic indicators used for credit portfolio context.
+    columns:
+      - name: observation_date
+        data_tests:
+          - not_null
+      - name: indicator_name
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["selic", "credit_free_total"]
+      - name: value
+        data_tests:
+          - not_null

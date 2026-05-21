@@ -34,3 +34,10 @@ create table if not exists raw.loans (
     days_past_due int,
     risk_rating text
 );
+
+create table if not exists raw.macro_indicators (
+    observation_date date,
+    indicator_name text,
+    series_id int,
+    value numeric(18,4)
+);

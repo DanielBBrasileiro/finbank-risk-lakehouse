@@ -11,6 +11,16 @@ load_dotenv()
 
 RAW_DIR = Path("data/raw")
 
+CORE_TABLES = [
+    ("customers", "customers.csv"),
+    ("accounts", "accounts.csv"),
+    ("transactions", "transactions.csv"),
+    ("loans", "loans.csv"),
+]
+OPTIONAL_TABLES = [
+    ("macro_indicators", "macro_indicators.csv"),
+]
+
 
 def get_engine():
     user = os.getenv("POSTGRES_USER", "finbank")
@@ -41,11 +51,15 @@ def load_csv(table_name: str, file_name: str) -> None:
     print(f"Loaded raw.{table_name}: {len(df):,} rows")
 
 
+def tables_to_load(*, raw_dir: Path = RAW_DIR) -> list[tuple[str, str]]:
+    tables = list(CORE_TABLES)
+    tables.extend((table_name, file_name) for table_name, file_name in OPTIONAL_TABLES if (raw_dir / file_name).exists())
+    return tables
+
+
 def main() -> None:
-    load_csv("customers", "customers.csv")
-    load_csv("accounts", "accounts.csv")
-    load_csv("transactions", "transactions.csv")
-    load_csv("loans", "loans.csv")
+    for table_name, file_name in tables_to_load(raw_dir=RAW_DIR):
+        load_csv(table_name, file_name)
 
 
 if __name__ == "__main__":

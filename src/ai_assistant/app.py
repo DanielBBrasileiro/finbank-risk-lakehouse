@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from tenacity import (
@@ -63,7 +64,8 @@ class OfflineGovernedRiskAgent:
     """Deterministic no-key copilot used for demos, CI and recruiter walkthroughs."""
 
     def ask(self, prompt: str) -> str:
-        answer = answer_question(prompt)
+        audit_path = os.getenv("AI_AUDIT_PATH")
+        answer = answer_question(prompt, audit_path=Path(audit_path) if audit_path else None)
         return answer.response
 
 

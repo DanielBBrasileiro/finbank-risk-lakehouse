@@ -37,6 +37,13 @@ create or replace table FINBANK.RAW.LOANS (
     risk_rating string
 );
 
+create or replace table FINBANK.RAW.MACRO_INDICATORS (
+    observation_date date,
+    indicator_name string,
+    series_id number,
+    value number(18,4)
+);
+
 create or replace table FINBANK.MARTS.MART_CUSTOMER_EXPOSURE (
     customer_id string,
     segment string,
@@ -50,6 +57,16 @@ create or replace table FINBANK.MARTS.MART_CUSTOMER_EXPOSURE (
     portfolio_status string
 );
 
+create or replace table FINBANK.MARTS.MART_CREDIT_MACRO_CONTEXT (
+    macro_observation_date date,
+    selic_rate number(18,4),
+    credit_free_total number(18,4),
+    portfolio_status string,
+    customer_count number,
+    total_outstanding_balance number(18,2)
+);
+
 comment on schema FINBANK.RAW is 'Raw landing schema for source-aligned banking and macroeconomic data.';
 comment on schema FINBANK.MARTS is 'Governed analytics marts consumed by dashboards and the AI risk copilot.';
 comment on table FINBANK.MARTS.MART_CUSTOMER_EXPOSURE is 'Customer-level credit exposure mart with delinquency-derived portfolio status.';
+comment on table FINBANK.MARTS.MART_CREDIT_MACRO_CONTEXT is 'Portfolio exposure summarized with BCB macroeconomic context for recruiter walkthroughs.';

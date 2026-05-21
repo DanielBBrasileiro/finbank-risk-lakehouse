@@ -76,3 +76,23 @@
 | total_amount | Total transaction amount |
 | avg_amount | Average transaction amount |
 | suspicious_count | Count of transactions flagged as suspicious |
+
+## macro_indicators
+
+| Column | Description |
+|---|---|
+| observation_date | BCB observation date normalized to ISO format |
+| indicator_name | Macro indicator name, such as selic or credit_free_total |
+| series_id | BCB SGS series identifier |
+| value | Numeric indicator value |
+
+## mart_credit_macro_context
+
+| Column | Description |
+|---|---|
+| macro_observation_date | Latest macro observation date available locally |
+| selic_rate | Latest SELIC value in the macro source |
+| credit_free_total | Latest free-credit total value in the macro source |
+| portfolio_status | Derived credit portfolio status |
+| customer_count | Number of customers by portfolio status |
+| total_outstanding_balance | Outstanding credit exposure by portfolio status |
