@@ -11,6 +11,14 @@ create table if not exists raw.customers (
     internal_score int
 );
 
+create table if not exists raw.accounts (
+    account_id text primary key,
+    customer_id text,
+    account_type text,
+    opened_at date,
+    status text
+);
+
 create table if not exists raw.transactions (
     transaction_id text primary key,
     customer_id text,

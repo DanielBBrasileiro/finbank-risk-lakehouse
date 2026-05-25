@@ -319,6 +319,15 @@ def _draft_sql(question: str) -> str | None:
             "group by portfolio_status "
             "order by total_outstanding_balance desc"
         )
+    if "account" in lowered and ("health" in lowered or "status" in lowered or "blocked" in lowered):
+        return (
+            "select account_health_status, count(*) as customer_count, "
+            "sum(total_accounts) as total_accounts, "
+            "avg(active_ratio_pct) as avg_active_ratio "
+            "from analytics_marts.mart_account_health "
+            "group by account_health_status "
+            "order by customer_count desc"
+        )
     return None
 
 

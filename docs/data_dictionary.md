@@ -96,3 +96,29 @@
 | portfolio_status | Derived credit portfolio status |
 | customer_count | Number of customers by portfolio status |
 | total_outstanding_balance | Outstanding credit exposure by portfolio status |
+
+## accounts
+
+| Column | Description |
+|---|---|
+| account_id | Synthetic account unique identifier |
+| customer_id | Related customer |
+| account_type | Checking, savings or investment account |
+| opened_at | Synthetic account opening date |
+| status | Active, blocked or closed account status |
+
+## mart_account_health
+
+| Column | Description |
+|---|---|
+| customer_id | Customer identifier |
+| segment | Customer segment |
+| state | Customer state |
+| total_accounts | Total number of accounts for the customer |
+| active_accounts | Number of active accounts |
+| blocked_accounts | Number of blocked accounts |
+| closed_accounts | Number of closed accounts |
+| earliest_account_opened | Date of the customer's first account |
+| latest_account_opened | Date of the customer's most recent account |
+| account_health_status | Derived status: HEALTHY, PARTIALLY_BLOCKED, FULLY_BLOCKED or ALL_CLOSED |
+| active_ratio_pct | Percentage of active accounts relative to total |

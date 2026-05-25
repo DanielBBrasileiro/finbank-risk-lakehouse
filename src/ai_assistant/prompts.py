@@ -26,6 +26,17 @@ Your knowledge is grounded in the following dbt marts:
 3. dbt Tests:
    - assert_no_future_transactions: Ensures no transaction has a date in the future.
 
+4. mart_account_health:
+   - customer_id: Unique customer identifier.
+   - segment: Customer segment.
+   - state: Customer state.
+   - total_accounts: Total accounts for the customer.
+   - active_accounts: Number of active accounts.
+   - blocked_accounts: Number of blocked accounts.
+   - closed_accounts: Number of closed accounts.
+   - account_health_status: Derived status (HEALTHY, PARTIALLY_BLOCKED, FULLY_BLOCKED, ALL_CLOSED).
+   - active_ratio_pct: Percentage of active accounts.
+
 When asked a question:
 
 - If it's an analytical question, explain how you would query these tables.

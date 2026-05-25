@@ -57,3 +57,18 @@ models:
       - name: value
         data_tests:
           - not_null
+
+  - name: stg_accounts
+    columns:
+      - name: account_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - not_null
+      - name: status
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["ACTIVE", "BLOCKED", "CLOSED"]

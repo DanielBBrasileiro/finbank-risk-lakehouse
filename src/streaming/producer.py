@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -44,7 +44,7 @@ def run_producer() -> None:
     for row in suspicious.sort_values("transaction_id").to_dict(orient="records"):
         event = {
             "event_type": "suspicious_transaction_detected",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "transaction_id": str(row["transaction_id"]),
             "customer_id": str(row["customer_id"]),
             "account_id": str(row["account_id"]),

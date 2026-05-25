@@ -143,10 +143,11 @@ st.markdown("---")
 # Load Data
 exposure = read_sql("select * from analytics_marts.mart_customer_exposure")
 transactions = read_sql("select * from analytics_marts.mart_daily_transactions")
+account_health = read_sql("select * from analytics_marts.mart_account_health")
 
 if not exposure.empty:
-    tab1, tab2, tab3 = st.tabs(
-        ["📊 Credit Risk & Exposure", "💸 Transaction Monitoring", "🛡️ AI Governance & Ops"]
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📊 Credit Risk & Exposure", "💸 Transaction Monitoring", "🏦 Account Health", "🛡️ AI Governance & Ops"]
     )
 
     with tab1:
@@ -284,6 +285,83 @@ if not exposure.empty:
             )
 
     with tab3:
+        st.markdown("### 🏦 Account Health Intelligence")
+
+        if not account_health.empty:
+            h_col1, h_col2, h_col3, h_col4 = st.columns(4)
+
+            total_customers_ah = account_health["customer_id"].nunique()
+            avg_active_ratio = account_health["active_ratio_pct"].mean()
+            blocked_customers = len(
+                account_health[
+                    account_health["account_health_status"].isin(["FULLY_BLOCKED", "PARTIALLY_BLOCKED"])
+                ]
+            )
+            total_accounts_sum = int(account_health["total_accounts"].sum())
+
+            h_col1.metric("Customers", f"{total_customers_ah:,}")
+            h_col2.metric("Avg Active Ratio", f"{avg_active_ratio:.1f}%")
+            h_col3.metric(
+                "Blocked Customers",
+                f"{blocked_customers:,}",
+                delta=f"{(blocked_customers / total_customers_ah) * 100:.1f}% of total" if total_customers_ah > 0 else "0%",
+                delta_color="inverse",
+            )
+            h_col4.metric("Total Accounts", f"{total_accounts_sum:,}")
+
+            ah1, ah2 = st.columns([2, 1])
+
+            with ah1:
+                st.subheader("Account Health by Segment")
+                fig_ah_bar = px.bar(
+                    account_health.groupby(["segment", "account_health_status"], as_index=False)
+                    .agg(customer_count=("customer_id", "count")),
+                    x="segment",
+                    y="customer_count",
+                    color="account_health_status",
+                    title="Account Health Status by Segment",
+                    template="plotly_dark",
+                    color_discrete_map={
+                        "HEALTHY": "#00CC96",
+                        "PARTIALLY_BLOCKED": "#FFA15A",
+                        "FULLY_BLOCKED": "#EF553B",
+                        "ALL_CLOSED": "#636EFA",
+                    },
+                )
+                st.plotly_chart(fig_ah_bar, use_container_width=True)
+
+            with ah2:
+                st.subheader("Health Distribution")
+                fig_ah_pie = px.pie(
+                    account_health,
+                    names="account_health_status",
+                    hole=0.4,
+                    template="plotly_dark",
+                    color="account_health_status",
+                    color_discrete_map={
+                        "HEALTHY": "#00CC96",
+                        "PARTIALLY_BLOCKED": "#FFA15A",
+                        "FULLY_BLOCKED": "#EF553B",
+                        "ALL_CLOSED": "#636EFA",
+                    },
+                )
+                st.plotly_chart(fig_ah_pie, use_container_width=True)
+
+            st.markdown("---")
+            st.markdown("### 📋 Active Ratio by State")
+            fig_ah_state = px.box(
+                account_health,
+                x="state",
+                y="active_ratio_pct",
+                title="Active Account Ratio Distribution by State",
+                template="plotly_dark",
+                color_discrete_sequence=["#636EFA"],
+            )
+            st.plotly_chart(fig_ah_state, use_container_width=True)
+        else:
+            st.info("No account health data available. Run `make pipeline` and `make dbt` first.")
+
+    with tab4:
         st.subheader("🛡️ Governed AI Copilot Audit Trail")
         st.markdown(
             "This tab provides transparency into the AI Copilot safety, "

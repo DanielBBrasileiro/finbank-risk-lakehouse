@@ -78,6 +78,27 @@ models:
         data_tests:
           - not_null
 
+  - name: mart_account_health
+    description: Customer-level account health mart providing active/blocked/closed ratios and derived health status.
+    columns:
+      - name: customer_id
+        description: Customer identifier from synthetic core banking.
+        data_tests:
+          - unique
+          - not_null
+      - name: account_health_status
+        description: Derived health status based on account statuses.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["HEALTHY", "PARTIALLY_BLOCKED", "FULLY_BLOCKED", "ALL_CLOSED"]
+      - name: total_accounts
+        description: Total number of accounts for the customer.
+        data_tests:
+          - not_null
+      - name: active_ratio_pct
+        description: Percentage of active accounts relative to total.
+
 exposures:
   - name: streamlit_risk_dashboard
     label: FinBank Risk Intelligence Dashboard
@@ -90,6 +111,7 @@ exposures:
       - ref('mart_daily_transactions')
       - ref('mart_credit_macro_context')
       - ref('mart_ai_copilot_audit')
+      - ref('mart_account_health')
     owner:
       name: Daniel Brasileiro
       email: portfolio@example.com
@@ -103,6 +125,7 @@ exposures:
       - ref('mart_customer_exposure')
       - ref('mart_daily_transactions')
       - ref('mart_credit_macro_context')
+      - ref('mart_account_health')
     owner:
       name: Daniel Brasileiro
       email: portfolio@example.com

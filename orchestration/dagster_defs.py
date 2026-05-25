@@ -1,3 +1,4 @@
+import os
 import subprocess
 from pathlib import Path
 
@@ -48,13 +49,17 @@ def local_bronze_batch(context: AssetExecutionContext) -> str:
 
 
 @asset(group_name="warehouse", deps=[local_bronze_batch])
-def postgres_raw_tables(context: AssetExecutionContext) -> str:
-    output = _run(["python", "src/python_ingestion/load_to_postgres.py"])
-    context.add_output_metadata({"loader_output": output})
+def warehouse_raw_tables(context: AssetExecutionContext) -> str:
+    db_target = os.getenv("DB_TARGET", "").lower()
+    if db_target == "duckdb":
+        output = _run(["python", "src/python_ingestion/load_to_duckdb.py"])
+    else:
+        output = _run(["python", "src/python_ingestion/load_to_postgres.py"])
+    context.add_output_metadata({"loader_output": output, "db_target": db_target or "postgres"})
     return output
 
 
-@asset(group_name="analytics", deps=[postgres_raw_tables])
+@asset(group_name="analytics", deps=[warehouse_raw_tables])
 def dbt_risk_marts(context: AssetExecutionContext) -> str:
     output = _run(["dbt", "build", "--profiles-dir", "."], cwd=PROJECT_ROOT / "dbt")
     context.add_output_metadata({"dbt_output_tail": output[-2000:]})
@@ -73,8 +78,9 @@ defs = Definitions(
         synthetic_raw_files,
         rust_csv_validation,
         local_bronze_batch,
-        postgres_raw_tables,
+        warehouse_raw_tables,
         dbt_risk_marts,
         governed_ai_eval,
     ]
 )
+
