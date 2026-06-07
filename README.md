@@ -59,7 +59,7 @@ The cloud path is intentionally cost-aware. The public demo runs locally; AWS/Sn
 ## Quick Start
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter.git
 cd finbank-risk-lakehouse-starter
 cp .env.example .env
 make bootstrap

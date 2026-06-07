@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 import uuid
-from datetime import timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -58,9 +58,18 @@ def make_transactions(accounts: pd.DataFrame, n: int = 20_000) -> pd.DataFrame:
     channels = ["PIX", "CARD", "ATM", "BRANCH", "TED", "APP"]
     transaction_types = ["DEBIT", "CREDIT", "TRANSFER", "PAYMENT", "WITHDRAWAL"]
 
+    accounts_records = accounts[["customer_id", "account_id"]].to_dict(orient="records")
+    sampled_indices = np.random.randint(0, len(accounts_records), size=n)
+
+    today = date.today()
+    start_date = today - timedelta(days=18 * 30)
+    days_range = (today - start_date).days
+    random_offsets = np.random.randint(0, days_range, size=n)
+    precomputed_dates = [start_date + timedelta(days=int(offset)) for offset in random_offsets]
+
     rows = []
-    for _ in range(n):
-        acc = accounts.sample(1).iloc[0]
+    for i, idx in enumerate(sampled_indices):
+        acc = accounts_records[idx]
         amount = float(np.round(np.random.lognormal(mean=5.2, sigma=1.1), 2))
         suspicious = amount > 2_500 and random.random() < 0.10
 
@@ -69,7 +78,7 @@ def make_transactions(accounts: pd.DataFrame, n: int = 20_000) -> pd.DataFrame:
                 "transaction_id": str(uuid.uuid4()),
                 "customer_id": acc["customer_id"],
                 "account_id": acc["account_id"],
-                "transaction_date": fake.date_between(start_date="-18M", end_date="today"),
+                "transaction_date": precomputed_dates[i],
                 "channel": random.choice(channels),
                 "transaction_type": random.choice(transaction_types),
                 "amount": amount,

@@ -37,9 +37,9 @@
 ## Sprint 5 - Databricks
 
 - [x] Create Databricks notebook.
-- [ ] Read Bronze data.
-- [ ] Create Silver data.
-- [ ] Create Gold features.
+- [x] Read Bronze data.
+- [x] Create Silver data.
+- [x] Create Gold features.
 
 ## Sprint 6 - Governed AI Risk Copilot
 
@@ -58,8 +58,8 @@
 
 ## Sprint 8 - Phase 3: Polish and professionalize
 
-- [ ] Fix accounts gap: DDL, staging model, dbt tests.
-- [ ] Add mart_account_health with dbt tests and exposure.
-- [ ] Add account health to dashboard and copilot.
+- [x] Fix accounts gap: DDL, staging model, dbt tests.
+- [x] Add mart_account_health with dbt tests and exposure.
+- [x] Add account health to dashboard and copilot.
 - [ ] Clean up process artifacts and dev dependencies.
 - [ ] Final verification pass.

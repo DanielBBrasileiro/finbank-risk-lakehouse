@@ -6,8 +6,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from dotenv import load_dotenv
-from kafka import KafkaConsumer
-from sqlalchemy import create_engine, text
 
 load_dotenv()
 
@@ -19,6 +17,7 @@ def get_engine():
     duckdb_file = Path(os.getenv("DUCKDB_PATH", "data/warehouse.duckdb"))
 
     if db_target == "duckdb" and (duckdb_file.exists() or os.getenv("DUCKDB_PATH")):
+        from sqlalchemy import create_engine
         return create_engine(f"duckdb:///{duckdb_file}")
 
     user = os.getenv("POSTGRES_USER", "finbank")
@@ -28,12 +27,14 @@ def get_engine():
     db = os.getenv("POSTGRES_DB", "finbank")
 
     try:
+        from sqlalchemy import create_engine, text
         engine = create_engine(f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}")
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return engine
     except Exception as err:
         if duckdb_file.exists():
+            from sqlalchemy import create_engine
             return create_engine(f"duckdb:///{duckdb_file}")
         raise ValueError("Could not connect to Postgres and no local DuckDB found.") from err
 
@@ -43,6 +44,7 @@ def process_event(event: dict, engine) -> None:
     amount = float(event["amount"])
     timestamp = event.get("timestamp", event.get("transaction_date"))
 
+    from sqlalchemy import text
     with engine.begin() as conn:
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw;"))
         conn.execute(
@@ -90,18 +92,35 @@ def run_consumer(one_shot: bool = False) -> None:
 
     print("Starting Streaming Consumer...")
 
-    consumer = None
+    # Check if broker is reachable using a fast socket connection
+    import socket
+    broker_reachable = False
     try:
-        consumer = KafkaConsumer(
-            "suspicious-transactions",
-            bootstrap_servers=[broker],
-            auto_offset_reset="earliest",
-            value_deserializer=lambda x: json.loads(x.decode("utf-8")),
-            consumer_timeout_ms=2000 if one_shot else None,
-        )
-        print(f"Connected to Redpanda at {broker}. Consuming from 'suspicious-transactions' topic...")
-    except Exception as e:
-        print(f"Could not connect to Kafka: {e}. Consuming from local fallback file.")
+        host, port_str = broker.split(":")
+        port = int(port_str)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.05)
+            if s.connect_ex((host, port)) == 0:
+                broker_reachable = True
+    except Exception:
+        pass
+
+    consumer = None
+    if broker_reachable:
+        try:
+            from kafka import KafkaConsumer
+            consumer = KafkaConsumer(
+                "suspicious-transactions",
+                bootstrap_servers=[broker],
+                auto_offset_reset="earliest",
+                value_deserializer=lambda x: json.loads(x.decode("utf-8")),
+                consumer_timeout_ms=2000 if one_shot else None,
+            )
+            print(f"Connected to Redpanda at {broker}. Consuming from 'suspicious-transactions' topic...")
+        except Exception as e:
+            print(f"Could not connect to Kafka: {e}. Consuming from local fallback file.")
+    else:
+        print(f"Broker {broker} is not reachable. Consuming from local fallback file.")
 
     if consumer:
         try:
