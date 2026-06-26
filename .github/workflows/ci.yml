@@ -36,10 +36,12 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        run: uv pip install --system -r requirements.txt pytest ruff
+        run: |
+          uv pip install --system -r requirements.txt
+          uv pip install --system -r requirements-dev.txt
 
       - name: Run Python tests
-        run: python -m pytest tests -q
+        run: make test
 
       - name: Run Ruff
         run: ruff check src dashboards tests

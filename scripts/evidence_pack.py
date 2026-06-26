@@ -81,6 +81,7 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
             "## Publication Checklist",
             "",
             "- Ensure the branch linked from LinkedIn contains the latest verified commits.",
+            "- Run `docs/portfolio/pre_linkedin_test_plan.md` before posting.",
             "",
         ]
     )
@@ -99,7 +100,7 @@ def write_evidence_pack(
 
 def _git_output(project_root: Path, command: list[str]) -> str:
     try:
-        result = subprocess.run(command, cwd=project_root, check=True, capture_output=True, text=True, timeout=10)
+        result = subprocess.run(command, cwd=project_root, check=True, capture_output=True, text=True, timeout=30)
     except Exception:
         return ""
     return result.stdout.strip()

@@ -3,8 +3,8 @@
 ## Public Repository
 
 - Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter
-- Current branch: professional-data-engineering-case
-- Current commit: 3dfd235
+- Current branch: main
+- Current commit: 196935b
 - GitHub Actions CI: configured
 
 ## Local-first demo path
@@ -48,3 +48,4 @@ This repository demonstrates a cost-aware data engineering lifecycle: generation
 ## Publication Checklist
 
 - Ensure the branch linked from LinkedIn contains the latest verified commits.
+- Run `docs/portfolio/pre_linkedin_test_plan.md` before posting.

@@ -1,4 +1,5 @@
 from pathlib import Path
+from subprocess import CompletedProcess
 
 import scripts.evidence_pack as evidence_pack
 from scripts.evidence_pack import build_evidence_markdown
@@ -47,6 +48,7 @@ def test_build_evidence_markdown_includes_recruiter_ready_proof_points(tmp_path:
     assert "`AI_DEMO_MODE=1 make ai-eval`" in markdown
     assert "Evidence Captured" in markdown
     assert "Publication Checklist" in markdown
+    assert "`docs/portfolio/pre_linkedin_test_plan.md`" in markdown
 
 
 def test_build_evidence_markdown_counts_nested_screenshots(tmp_path: Path) -> None:
@@ -62,3 +64,16 @@ def test_build_evidence_markdown_counts_nested_screenshots(tmp_path: Path) -> No
     assert "portfolio screenshots: 4 captured" in markdown
     assert "`docs/portfolio/screenshots/dbt-docs-lineage.png`" in markdown
     assert "Governed AI audit captured" in markdown
+
+
+def test_git_output_allows_slow_local_git(monkeypatch, tmp_path: Path) -> None:
+    observed: dict[str, int] = {}
+
+    def fake_run(command, **kwargs):
+        observed["timeout"] = kwargs["timeout"]
+        return CompletedProcess(command, 0, stdout="main\n", stderr="")
+
+    monkeypatch.setattr(evidence_pack.subprocess, "run", fake_run)
+
+    assert evidence_pack._git_output(tmp_path, ["git", "branch", "--show-current"]) == "main"
+    assert observed["timeout"] >= 30

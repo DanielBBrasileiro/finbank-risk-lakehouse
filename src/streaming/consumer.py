@@ -7,8 +7,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
 FALLBACK_PATH = Path("data/streaming/suspicious_transactions_fallback.jsonl")
 
 
@@ -87,6 +85,7 @@ def process_event(event: dict, engine) -> None:
 
 
 def run_consumer(one_shot: bool = False) -> None:
+    load_dotenv()
     broker = os.getenv("KAFKA_BROKER", "localhost:9092")
     engine = get_engine()
 

@@ -20,6 +20,7 @@ install:
 bootstrap:
 	uv venv --allow-existing .venv
 	uv pip install -r requirements.txt
+	uv pip install -r requirements-dev.txt
 
 doctor:
 	$(PYTHON) scripts/doctor.py
@@ -64,7 +65,10 @@ pipeline-local: generate generate-macro-offline generate-cvm-offline validate pu
 warehouse-local: load dbt
 
 test:
-	$(PYTHON) -m pytest tests -q
+	@for test_file in tests/test_*.py; do \
+		echo "Running $$test_file"; \
+		$(PYTHON) -m pytest $$test_file -q || exit $$?; \
+	done
 
 lint:
 	$(RUFF) check src dashboards tests
@@ -75,7 +79,7 @@ ai-eval:
 streaming-demo:
 	@echo "Running Ingestion Stream Simulation..."
 	$(PYTHON) -m src.streaming.producer
-	$(PYTHON) -m src.streaming.consumer --one-shot
+	DB_TARGET=duckdb DUCKDB_PATH=data/warehouse.duckdb $(PYTHON) -m src.streaming.consumer --one-shot
 
 evidence-pack:
 	$(PYTHON) scripts/evidence_pack.py

@@ -16,8 +16,6 @@ from .prompts import SYSTEM_INSTRUCTION
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
-
 
 class RiskAgent:
     """
@@ -28,6 +26,7 @@ class RiskAgent:
     """
 
     def __init__(self, model_name: str | None = None):
+        load_dotenv()
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables.")
@@ -63,13 +62,21 @@ class RiskAgent:
 class OfflineGovernedRiskAgent:
     """Deterministic no-key copilot used for demos, CI and recruiter walkthroughs."""
 
+    def __init__(self, corpus_paths: list[Path] | None = None):
+        self.corpus_paths = corpus_paths
+
     def ask(self, prompt: str) -> str:
         audit_path = os.getenv("AI_AUDIT_PATH")
-        answer = answer_question(prompt, audit_path=Path(audit_path) if audit_path else None)
+        answer = answer_question(
+            prompt,
+            corpus_paths=self.corpus_paths,
+            audit_path=Path(audit_path) if audit_path else None,
+        )
         return answer.response
 
 
 def build_risk_agent() -> RiskAgent | OfflineGovernedRiskAgent:
+    load_dotenv()
     demo_mode = os.getenv("AI_DEMO_MODE", "0").lower() in {"1", "true", "yes"}
     if demo_mode or not os.getenv("GOOGLE_API_KEY"):
         return OfflineGovernedRiskAgent()
