@@ -14,7 +14,9 @@ def test_bootstrap_installs_shared_dev_requirements() -> None:
     assert "pytest==9.0.2" in dev_requirements
     assert "ruff==0.14.6" in dev_requirements
     assert "requirements-dev.txt" in makefile
-    assert "requirements-dev.txt" in ci_workflow
+    assert "run: make bootstrap" in ci_workflow
+    assert "run: make lint" in ci_workflow
+    assert "run: make dbt-parse" in ci_workflow
 
 
 def test_test_target_runs_test_files_individually() -> None:

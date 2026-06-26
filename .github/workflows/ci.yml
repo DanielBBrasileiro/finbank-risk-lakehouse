@@ -36,15 +36,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        run: |
-          uv pip install --system -r requirements.txt
-          uv pip install --system -r requirements-dev.txt
+        run: make bootstrap
 
       - name: Run Python tests
         run: make test
 
       - name: Run Ruff
-        run: ruff check src dashboards tests
+        run: make lint
 
       - name: Build Rust validator
         run: cargo build --manifest-path src/rust_validator/Cargo.toml --release
@@ -56,4 +54,4 @@ jobs:
           POSTGRES_DB: finbank
           POSTGRES_USER: finbank
           POSTGRES_PASSWORD: finbank
-        run: cd dbt && dbt parse --profiles-dir .
+        run: make dbt-parse
