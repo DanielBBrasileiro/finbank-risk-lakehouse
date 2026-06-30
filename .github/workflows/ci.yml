@@ -37,14 +37,20 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          uv pip install --system -r requirements.txt
-          uv pip install --system -r requirements-dev.txt
+          uv venv --allow-existing .venv
+          . .venv/bin/activate
+          uv pip install -r requirements.txt
+          uv pip install -r requirements-dev.txt
 
       - name: Run Python tests
-        run: make test
+        run: |
+          . .venv/bin/activate
+          make test
 
       - name: Run Ruff
-        run: ruff check src dashboards tests
+        run: |
+          . .venv/bin/activate
+          make lint
 
       - name: Build Rust validator
         run: cargo build --manifest-path src/rust_validator/Cargo.toml --release
@@ -56,4 +62,6 @@ jobs:
           POSTGRES_DB: finbank
           POSTGRES_USER: finbank
           POSTGRES_PASSWORD: finbank
-        run: cd dbt && dbt parse --profiles-dir .
+        run: |
+          . .venv/bin/activate
+          make dbt-parse
