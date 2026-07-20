@@ -9,8 +9,8 @@ with account_summary as (
         sum(case when a.status = 'CLOSED' then 1 else 0 end) as closed_accounts,
         min(a.opened_at) as earliest_account_opened,
         max(a.opened_at) as latest_account_opened
-    from {{ ref('stg_accounts') }} a
-    inner join {{ ref('stg_customers') }} c
+    from {{ ref('stg_accounts') }} as a
+    inner join {{ ref('stg_customers') }} as c
         on a.customer_id = c.customer_id
     group by a.customer_id, c.segment, c.state
 )

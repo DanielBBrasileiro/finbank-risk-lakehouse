@@ -84,7 +84,7 @@ models:
           - not_null
           - accepted_values:
               values: ["selic", "credit_free_total"]
-      - name: value
+      - name: indicator_value
         data_tests:
           - not_null
 

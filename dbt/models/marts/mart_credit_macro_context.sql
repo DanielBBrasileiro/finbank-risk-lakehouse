@@ -1,9 +1,9 @@
 with latest_macro as (
-    select *
-    from {{ ref('int_credit_macro_context') }}
-    where observation_date = (
-        select max(observation_date)
-        from {{ ref('int_credit_macro_context') }}
+    select macro_context.*
+    from {{ ref('int_credit_macro_context') }} as macro_context
+    where macro_context.observation_date = (
+        select max(latest_context.observation_date)
+        from {{ ref('int_credit_macro_context') }} as latest_context
     )
 ),
 

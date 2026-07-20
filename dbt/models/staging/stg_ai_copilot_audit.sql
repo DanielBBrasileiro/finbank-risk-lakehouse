@@ -1,5 +1,5 @@
 select
-    cast("timestamp" as timestamp) as audit_timestamp,
+    cast(timestamp as timestamp) as audit_timestamp,
     status,
     question,
     citations,

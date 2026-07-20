@@ -10,10 +10,11 @@ with source_accounts as (
 )
 
 select mart.customer_id
-from {{ ref('mart_account_health') }} mart
-inner join source_accounts source
+from {{ ref('mart_account_health') }} as mart
+inner join source_accounts as source
     on mart.customer_id = source.customer_id
-where mart.total_accounts != source.total_accounts
-   or mart.active_accounts != source.active_accounts
-   or mart.blocked_accounts != source.blocked_accounts
-   or mart.closed_accounts != source.closed_accounts
+where
+    mart.total_accounts != source.total_accounts
+    or mart.active_accounts != source.active_accounts
+    or mart.blocked_accounts != source.blocked_accounts
+    or mart.closed_accounts != source.closed_accounts

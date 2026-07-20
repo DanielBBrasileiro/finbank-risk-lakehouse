@@ -15,8 +15,9 @@ mart_totals as (
 )
 
 select mart.*
-from mart_totals mart
-cross join source_totals source
-where mart.transaction_count != source.transaction_count
-   or abs(mart.total_amount - source.total_amount) > 0.01
-   or mart.suspicious_count != source.suspicious_count
+from mart_totals as mart
+cross join source_totals as source
+where
+    mart.transaction_count != source.transaction_count
+    or abs(mart.total_amount - source.total_amount) > 0.01
+    or mart.suspicious_count != source.suspicious_count
