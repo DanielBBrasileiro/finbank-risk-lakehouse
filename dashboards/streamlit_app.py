@@ -91,12 +91,13 @@ def get_engine():
 
 
 @st.cache_data(ttl=300)
-def read_sql(query: str) -> pd.DataFrame:
+def read_sql(query: str, *, required: bool = True) -> pd.DataFrame:
     try:
         engine = get_engine()
         return pd.read_sql(query, engine)
-    except Exception as e:
-        st.error(f"Error connecting to database: {e}")
+    except Exception as exc:
+        if required:
+            st.error(f"Unable to load a required dashboard dataset: {exc}")
         return pd.DataFrame()
 
 
@@ -285,7 +286,7 @@ if not exposure.empty:
         st.markdown("---")
         st.markdown("### Real-Time Suspicious Ingestion Alerts (Redpanda / Local Fallback)")
 
-        streaming_summary = read_sql("select * from raw.streaming_suspicious_summary")
+        streaming_summary = read_sql("select * from raw.streaming_suspicious_summary", required=False)
         if not streaming_summary.empty:
             s_col1, s_col2 = st.columns([1, 2])
             with s_col1:
@@ -435,7 +436,7 @@ if not exposure.empty:
             import json
 
             # DB source
-            db_df = read_sql("select * from analytics_marts.mart_ai_copilot_audit")
+            db_df = read_sql("select * from analytics_marts.mart_ai_copilot_audit", required=False)
             if not db_df.empty:
                 return db_df
             # JSONL fallback

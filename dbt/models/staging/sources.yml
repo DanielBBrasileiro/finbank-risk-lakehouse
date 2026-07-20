@@ -21,6 +21,13 @@ models:
       - name: segment
         data_tests:
           - not_null
+          - accepted_values:
+              values: ["PF_LOW_INCOME", "PF_MASS", "PF_AFFLUENT", "PJ_SMALL", "PJ_MID"]
+      - name: document_type
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: ["CPF", "CNPJ"]
 
   - name: stg_transactions
     columns:
@@ -31,6 +38,24 @@ models:
       - name: amount
         data_tests:
           - not_null
+      - name: customer_id
+        data_tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: account_id
+        data_tests:
+          - relationships:
+              to: ref('stg_accounts')
+              field: account_id
+      - name: channel
+        data_tests:
+          - accepted_values:
+              values: ["PIX", "CARD", "ATM", "BRANCH", "TED", "APP"]
+      - name: transaction_type
+        data_tests:
+          - accepted_values:
+              values: ["DEBIT", "CREDIT", "TRANSFER", "PAYMENT", "WITHDRAWAL"]
 
   - name: stg_loans
     columns:
@@ -42,6 +67,11 @@ models:
         data_tests:
           - accepted_values:
               values: ["AA", "A", "B", "C", "D", "E"]
+      - name: customer_id
+        data_tests:
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
 
   - name: stg_macro_indicators
     description: Normalized BCB macroeconomic indicators used for credit portfolio context.
@@ -67,6 +97,13 @@ models:
       - name: customer_id
         data_tests:
           - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+      - name: account_type
+        data_tests:
+          - accepted_values:
+              values: ["CHECKING", "SAVINGS", "INVESTMENT"]
       - name: status
         data_tests:
           - not_null

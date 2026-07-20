@@ -8,11 +8,11 @@ The project is intentionally recruiter-friendly: it can run locally, includes te
 
 ## What Makes It Professional
 
-- End-to-end local path: synthetic banking data -> Rust validation -> PostgreSQL -> dbt marts -> dashboard -> AI evals.
+- End-to-end local path: synthetic banking data -> Rust validation -> DuckDB/PostgreSQL -> dbt marts -> dashboard -> AI evals.
 - Local lakehouse path: raw CSV -> Bronze CSV/Parquet -> Silver standardized Parquet -> Gold risk feature artifacts.
 - dbt is used for more than transformations: tests, documentation, lineage and downstream exposures are included.
 - Data contracts are enforced before warehouse loading through a Rust CLI.
-- Dagster assets and an optional Airflow DAG make orchestration visible from two market-recognized angles.
+- Dagster assets and an optional containerized Airflow DAG demonstrate orchestration without changing pipeline business logic.
 - AI is governed: offline mode, retrieval over trusted metadata, SQL guardrails, audit JSONL and deterministic evaluation cases.
 - Cloud is cost-aware: Terraform and DDL are present, but the public demo does not require paid resources.
 
@@ -42,4 +42,4 @@ The project is intentionally recruiter-friendly: it can run locally, includes te
 
 ## Current Scope
 
-The repo is a professional portfolio MVP. It does not claim to be a production bank system. Real Snowflake execution, managed Databricks jobs, OpenLineage/Marquez and production-grade streaming are intentionally optional next-stage enhancements.
+The repo is a verified local-first portfolio system. It does not claim to be a production bank platform. AWS, Snowflake and Databricks remain explicit blueprints, and production scale, SLAs and regulated-model validation are outside this public demonstration.

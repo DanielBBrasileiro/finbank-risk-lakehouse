@@ -101,3 +101,56 @@ Publish only after:
 - `docs/portfolio/evidence.md` was regenerated after the latest commit.
 - The README Quick Start still matches the tested commands.
 - No generated, sensitive, personal, or duplicate local files are staged.
+# Pre-LinkedIn Release Test Plan
+
+Run this plan from a fresh clone of the release candidate, preferably on Ubuntu and once on macOS.
+
+## Automated Release Gates
+
+```bash
+cp .env.example .env
+make bootstrap
+make doctor
+make clean-demo
+AI_DEMO_MODE=1 DB_TARGET=duckdb make demo-local
+make test-all
+make evidence-pack
+```
+
+Expected results:
+
+- Python tests and Ruff pass.
+- Rust tests and all five input contracts pass.
+- DuckDB raw tables and every dbt model/test build successfully.
+- Replaying the same event batch leaves suspicious-event totals unchanged.
+- Streamlit health endpoint returns `ok`.
+- The evidence pack references the release commit and contains SHA-256 hashes.
+
+## PostgreSQL Integration
+
+```bash
+make up
+DB_TARGET=postgres make generate generate-macro-offline generate-cvm-offline validate
+DB_TARGET=postgres make load load-audit dbt
+make down
+```
+
+Confirm that primary keys remain present after loading and that dbt relationship tests pass.
+
+## Manual Product Review
+
+- Open all four dashboard tabs at desktop and mobile widths.
+- Confirm that no raw exception or database stack trace is displayed.
+- Reconcile customer count and exposure totals with dbt marts.
+- Ask one allowed analytical question and confirm its audit record.
+- Submit destructive and multi-statement SQL prompts and confirm rejection.
+- Review screenshots for readable labels, no overlap and no sensitive data.
+- Confirm the README distinguishes integrated components from blueprints.
+
+## GitHub Release Gate
+
+- Required CI and CodeQL checks are green on the release commit.
+- `main` is protected and the working tree is clean.
+- Repository description, topics, license and screenshots are visible.
+- `v1.0.0-portfolio` points to the verified commit.
+- The LinkedIn copy makes no production-scale or deployed-cloud claim.

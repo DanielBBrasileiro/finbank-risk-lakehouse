@@ -20,6 +20,7 @@ select
     latest_macro.observation_date as macro_observation_date,
     latest_macro.selic_rate,
     latest_macro.credit_free_total,
+    'LATEST_AVAILABLE_OBSERVATION' as context_scope,
     portfolio.portfolio_status,
     portfolio.customer_count,
     portfolio.total_outstanding_balance

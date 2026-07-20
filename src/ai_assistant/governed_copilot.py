@@ -8,6 +8,8 @@ from pathlib import Path
 from src.ai_assistant.retrieval import build_corpus, retrieve_context
 from src.ai_assistant.sql_guardrails import SqlGuardrailError, build_guarded_query
 
+DEFAULT_AUDIT_PATH = Path("data/ai_audit/copilot_audit.jsonl")
+
 
 @dataclass(frozen=True)
 class CopilotAnswer:
@@ -25,13 +27,16 @@ def _execute_query(sql: str) -> str:
     from sqlalchemy import create_engine, text
 
     db_target = os.getenv("DB_TARGET", "").lower()
-    duckdb_file = Path("data/warehouse.duckdb")
+    duckdb_file = Path(os.getenv("DUCKDB_PATH", "data/warehouse.duckdb"))
 
     if db_target == "duckdb" and duckdb_file.exists():
-        engine = create_engine(f"duckdb:///{duckdb_file}")
+        engine = create_engine(
+            f"duckdb:///{duckdb_file}",
+            connect_args={"read_only": True},
+        )
     else:
-        user = os.getenv("POSTGRES_USER", "finbank")
-        password = os.getenv("POSTGRES_PASSWORD", "finbank")
+        user = os.getenv("AI_POSTGRES_USER", "finbank_reader")
+        password = os.getenv("AI_POSTGRES_PASSWORD", "finbank_reader")
         host = os.getenv("POSTGRES_HOST", "localhost")
         port = os.getenv("POSTGRES_PORT", "5432")
         db = os.getenv("POSTGRES_DB", "finbank")
@@ -42,7 +47,10 @@ def _execute_query(sql: str) -> str:
                 conn.execute(text("SELECT 1"))
         except Exception:
             if duckdb_file.exists():
-                engine = create_engine(f"duckdb:///{duckdb_file}")
+                engine = create_engine(
+                    f"duckdb:///{duckdb_file}",
+                    connect_args={"read_only": True},
+                )
             else:
                 return "Error: Database is offline and no local DuckDB warehouse was found."
 
@@ -51,8 +59,10 @@ def _execute_query(sql: str) -> str:
         if df.empty:
             return "No records found."
         return df.to_markdown(index=False)
-    except Exception as e:
-        return f"Error executing query: {e}"
+    except Exception as exc:
+        return f"Error executing query: {exc}"
+    finally:
+        engine.dispose()
 
 
 def answer_question(
@@ -62,10 +72,13 @@ def answer_question(
     allowed_schemas: tuple[str, ...] = ("analytics_marts",),
     default_limit: int = 100,
     audit_path: Path | None = None,
+    model_name: str | None = None,
 ) -> CopilotAnswer:
     """Return a deterministic or dynamic governed answer."""
     import os
     import sys
+
+    resolved_audit_path = _resolve_audit_path(audit_path)
 
     if _looks_destructive(question):
         answer = CopilotAnswer(
@@ -76,7 +89,12 @@ def answer_question(
             citations=[],
             guarded_sql=None,
         )
-        _write_audit_record(question=question, answer=answer, audit_path=audit_path, status="rejected")
+        _write_audit_record(
+            question=question,
+            answer=answer,
+            audit_path=resolved_audit_path,
+            status="rejected",
+        )
         return answer
 
     corpus = build_corpus(corpus_paths or _default_corpus_paths())
@@ -103,6 +121,9 @@ def answer_question(
     else:
         contexts = retrieve_context(question, corpus, top_k=3)
 
+    if not contexts:
+        contexts = retrieve_context(question, corpus, top_k=3)
+
     citations = [context.source for context in contexts]
     context_text = "\n\n".join(f"[{c.source}]:\n{c.text}" for c in contexts)
 
@@ -110,7 +131,7 @@ def answer_question(
         try:
             from google import genai
 
-            model_name = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
+            selected_model = model_name or os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
             client = genai.Client(api_key=api_key)
 
             # Step A: Draft SQL using Gemini
@@ -127,7 +148,7 @@ def answer_question(
             )
 
             sql_response = client.models.generate_content(
-                model=model_name,
+                model=selected_model,
                 contents=sql_prompt,
             )
             draft_sql = (sql_response.text or "").strip()
@@ -158,7 +179,10 @@ def answer_question(
                         guarded_sql=None,
                     )
                     _write_audit_record(
-                        question=question, answer=answer, audit_path=audit_path, status="rejected"
+                        question=question,
+                        answer=answer,
+                        audit_path=resolved_audit_path,
+                        status="rejected",
                     )
                     return answer
 
@@ -190,7 +214,7 @@ def answer_question(
                         )
 
                         correction_response = client.models.generate_content(
-                            model=model_name,
+                            model=selected_model,
                             contents=correction_prompt,
                         )
                         corrected_draft = (correction_response.text or "").strip()
@@ -226,7 +250,10 @@ def answer_question(
                             guarded_sql=guarded_sql,
                         )
                         _write_audit_record(
-                            question=question, answer=answer, audit_path=audit_path, status="rejected"
+                            question=question,
+                            answer=answer,
+                            audit_path=resolved_audit_path,
+                            status="rejected",
                         )
                         return answer
 
@@ -244,7 +271,7 @@ def answer_question(
             synth_prompt += "Answer the question professionally, explaining the SQL results if present. Ground your answers in the provided data."
 
             synth_response = client.models.generate_content(
-                model=model_name,
+                model=selected_model,
                 contents=synth_prompt,
             )
             response_text = synth_response.text or ""
@@ -254,7 +281,12 @@ def answer_question(
                 citations=citations,
                 guarded_sql=guarded_sql,
             )
-            _write_audit_record(question=question, answer=answer, audit_path=audit_path, status="answered")
+            _write_audit_record(
+                question=question,
+                answer=answer,
+                audit_path=resolved_audit_path,
+                status="answered",
+            )
             return answer
         except Exception as err:
             print(f"Error during dynamic generation: {err}. Falling back to deterministic mode.")
@@ -274,7 +306,12 @@ def answer_question(
                 citations=citations,
                 guarded_sql=None,
             )
-            _write_audit_record(question=question, answer=answer, audit_path=audit_path, status="rejected")
+            _write_audit_record(
+                question=question,
+                answer=answer,
+                audit_path=resolved_audit_path,
+                status="rejected",
+            )
             return answer
 
     answer = CopilotAnswer(
@@ -282,8 +319,21 @@ def answer_question(
         citations=citations,
         guarded_sql=guarded_sql,
     )
-    _write_audit_record(question=question, answer=answer, audit_path=audit_path, status="answered")
+    _write_audit_record(
+        question=question,
+        answer=answer,
+        audit_path=resolved_audit_path,
+        status="answered",
+    )
     return answer
+
+
+def _resolve_audit_path(audit_path: Path | None) -> Path:
+    import os
+
+    if audit_path is not None:
+        return audit_path
+    return Path(os.getenv("AI_AUDIT_PATH", str(DEFAULT_AUDIT_PATH)))
 
 
 def _default_corpus_paths() -> list[Path]:
@@ -291,8 +341,15 @@ def _default_corpus_paths() -> list[Path]:
 
 
 def _looks_destructive(question: str) -> bool:
-    lowered = question.lower()
-    return any(keyword in lowered for keyword in ("delete", "drop", "truncate", "update", "insert", "grant"))
+    import re
+
+    return bool(
+        re.search(
+            r"\b(?:alter|create|delete|drop|grant|insert|merge|revoke|truncate|update)\b",
+            question,
+            flags=re.IGNORECASE,
+        )
+    )
 
 
 def _draft_sql(question: str) -> str | None:

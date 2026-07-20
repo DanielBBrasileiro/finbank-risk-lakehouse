@@ -2,6 +2,7 @@
 .vscode/
 __pycache__/
 *.pyc
+*.egg-info/
 .env
 data/raw/*.csv
 data/bronze/
@@ -16,6 +17,7 @@ target/
 dbt/target/
 dbt/dbt_packages/
 dbt/.user.yml
+docs/portfolio/evidence.md
 orchestration/airflow/logs/
 orchestration/airflow/plugins/
 *.log

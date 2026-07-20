@@ -4,6 +4,10 @@
 
 from pyspark.sql import functions as F
 
+DEFAULT_DPD_THRESHOLD = 90
+HIGH_RISK_DPD_THRESHOLD = 30
+RISK_RATING_SCORES = {"AA": 1, "A": 2, "B": 3, "C": 4, "D": 5, "E": 6}
+
 silver_base_path = "s3://finbank-risk-lake/silver"
 gold_base_path = "s3://finbank-risk-lake/gold"
 
@@ -14,15 +18,25 @@ loans = spark.read.format("delta").load(f"{silver_base_path}/loans/")
 transactions = spark.read.format("delta").load(f"{silver_base_path}/transactions/")
 
 # DBTITLE 2,1. Gold Credit Snapshot (customer_credit_snapshot)
-# Aggregate loans at the customer level
+# Aggregate loans at the customer level using the canonical AA-to-E ordering.
+rating_to_score = F.create_map(
+    *[value for rating, score in RISK_RATING_SCORES.items() for value in (F.lit(rating), F.lit(score))]
+)
+score_to_rating = F.create_map(
+    *[value for rating, score in RISK_RATING_SCORES.items() for value in (F.lit(score), F.lit(rating))]
+)
+loans_with_rating_score = loans.withColumn("risk_rating_score", rating_to_score[F.col("risk_rating")])
+
 loan_agg = (
-    loans.groupBy("customer_id")
+    loans_with_rating_score.groupBy("customer_id")
     .agg(
         F.countDistinct("loan_id").alias("loan_count"),
         F.sum("principal_amount").alias("total_principal_amount"),
         F.sum("outstanding_balance").alias("total_outstanding_balance"),
         F.max("days_past_due").alias("max_days_past_due"),
-        F.avg("days_past_due").alias("avg_days_past_due")
+        F.avg("days_past_due").alias("avg_days_past_due"),
+        F.min("risk_rating_score").alias("best_risk_rating_score"),
+        F.max("risk_rating_score").alias("worst_risk_rating_score")
     )
 )
 
@@ -38,11 +52,14 @@ credit_snapshot = (
     })
     .withColumn(
         "portfolio_status",
-        F.when(F.col("max_days_past_due") > 90, "DEFAULT_RISK")
-        .when(F.col("max_days_past_due") > 30, "HIGH_RISK")
-        .when(F.col("max_days_past_due") > 5, "WATCHLIST")
+        F.when(F.col("loan_count") == 0, "NO_CREDIT_EXPOSURE")
+        .when(F.col("max_days_past_due") >= DEFAULT_DPD_THRESHOLD, "DEFAULT_RISK")
+        .when(F.col("max_days_past_due") >= HIGH_RISK_DPD_THRESHOLD, "HIGH_RISK")
+        .when(F.col("max_days_past_due") > 0, "WATCHLIST")
         .otherwise("PERFORMING")
     )
+    .withColumn("best_risk_rating", score_to_rating[F.col("best_risk_rating_score")])
+    .withColumn("worst_risk_rating", score_to_rating[F.col("worst_risk_rating_score")])
 )
 
 (
@@ -56,13 +73,13 @@ credit_snapshot = (
 # DBTITLE 3,2. Gold Daily Transactions (daily_transaction_monitoring)
 # Aggregate transactions by date and channel
 daily_transactions = (
-    transactions.groupBy("transaction_date", "channel")
+    transactions.groupBy("transaction_date", "channel", "transaction_type")
     .agg(
         F.countDistinct("transaction_id").alias("transaction_count"),
         F.sum("amount").alias("total_amount"),
-        F.sum(F.when(F.col("is_suspicious") == True, 1).otherwise(0)).alias("suspicious_count")
+        F.sum(F.when(F.col("is_suspicious"), 1).otherwise(0)).alias("suspicious_count")
     )
-    .sort("transaction_date", "channel")
+    .sort("transaction_date", "channel", "transaction_type")
 )
 
 (

@@ -21,7 +21,23 @@ models:
         description: Derived credit risk status based on maximum days past due.
         data_tests:
           - accepted_values:
-              values: ["PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+              values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+      - name: best_risk_rating
+        description: Best contractual rating ordered by the canonical AA-to-E risk scale; null without credit exposure.
+        data_tests:
+          - accepted_values:
+              values: ["AA", "A", "B", "C", "D", "E"]
+              quote: true
+              config:
+                where: "loan_count > 0"
+      - name: worst_risk_rating
+        description: Worst contractual rating ordered by the canonical AA-to-E risk scale; null without credit exposure.
+        data_tests:
+          - accepted_values:
+              values: ["AA", "A", "B", "C", "D", "E"]
+              quote: true
+              config:
+                where: "loan_count > 0"
 
   - name: mart_daily_transactions
     description: Daily transaction monitoring mart for volume and suspicious activity analysis.
@@ -44,7 +60,7 @@ models:
           - not_null
 
   - name: mart_credit_macro_context
-    description: Portfolio exposure summarized against the latest BCB macroeconomic context.
+    description: Descriptive portfolio exposure under the latest available BCB context; it does not claim causal macroeconomic impact.
     columns:
       - name: macro_observation_date
         description: Latest macroeconomic observation date available in the local raw source.
@@ -54,7 +70,12 @@ models:
         description: Derived credit risk status from the customer exposure mart.
         data_tests:
           - accepted_values:
-              values: ["PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+              values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+      - name: context_scope
+        description: Declares that the macro values are the latest available descriptive observation.
+        data_tests:
+          - accepted_values:
+              values: ["LATEST_AVAILABLE_OBSERVATION"]
       - name: total_outstanding_balance
         description: Outstanding balance by portfolio status under the latest macro context.
         data_tests:

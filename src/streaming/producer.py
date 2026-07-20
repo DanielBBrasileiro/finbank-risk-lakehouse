@@ -52,6 +52,8 @@ def run_producer() -> None:
                 bootstrap_servers=[broker],
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"),
                 request_timeout_ms=1000,
+                acks="all",
+                enable_idempotence=True,
             )
             print(f"Connected to Redpanda broker at {broker}.")
         except Exception as e:
@@ -79,7 +81,11 @@ def run_producer() -> None:
 
         if producer:
             try:
-                producer.send("suspicious-transactions", value=event)
+                producer.send(
+                    "suspicious-transactions",
+                    key=event["transaction_id"].encode("utf-8"),
+                    value=event,
+                )
                 events_sent += 1
             except Exception as err:
                 print(f"Kafka send error: {err}. Writing to fallback.")

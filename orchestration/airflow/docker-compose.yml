@@ -1,14 +1,46 @@
 services:
   airflow-standalone:
-    image: apache/airflow:3.1.0
+    image: finbank-airflow:3.1.0-local
+    build:
+      context: ../..
+      dockerfile: orchestration/airflow/Dockerfile
+      args:
+        AIRFLOW_VERSION: "3.1.0"
+        PYTHON_VERSION: "3.12"
+        RUST_VERSION: "1.83.0"
     container_name: finbank-airflow
     environment:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
-      FINBANK_PROJECT_ROOT_IN_CONTAINER: ${FINBANK_PROJECT_ROOT_IN_CONTAINER:-/opt/finbank}
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/finbank/orchestration/airflow/dags
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/metadata/airflow.db
+      FINBANK_PROJECT_ROOT_IN_CONTAINER: /opt/finbank
+      FINBANK_VALIDATOR_BIN: /usr/local/bin/finbank-validator
+      PYTHONPATH: /opt/finbank
+      DB_TARGET: duckdb
+      DBT_TARGET: duckdb
+      DUCKDB_PATH: /opt/finbank/data/warehouse.duckdb
+      AI_DEMO_MODE: "1"
+      AI_AUDIT_PATH: /opt/finbank/data/ai_audit/copilot_audit.jsonl
+      DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
     user: "${AIRFLOW_UID:-50000}:0"
+    init: true
     ports:
-      - "8080:8080"
+      - "${AIRFLOW_PORT:-8080}:8080"
     volumes:
-      - ./dags:/opt/airflow/dags:ro
-      - ${FINBANK_PROJECT_ROOT:-../..}:${FINBANK_PROJECT_ROOT_IN_CONTAINER:-/opt/finbank}
+      - airflow_logs:/opt/airflow/logs
+      - airflow_metadata:/opt/airflow/metadata
+      - finbank_data:/opt/finbank/data
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
     command: standalone
+
+volumes:
+  airflow_logs:
+  airflow_metadata:
+  finbank_data:

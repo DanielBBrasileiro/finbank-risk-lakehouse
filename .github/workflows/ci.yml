@@ -2,16 +2,72 @@ name: ci
 
 on:
   push:
-    branches: ["main", "professional-data-engineering-case"]
+    branches: ["main", "codex/**"]
   pull_request:
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.10.2"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: make bootstrap
+      - run: make test
+      - run: make lint
+      - run: make dbt-parse
+      - run: make rust-test
+
+  duckdb-end-to-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: make bootstrap
+      - name: Build the complete local demo
+        run: AI_DEMO_MODE=1 DB_TARGET=duckdb make demo-local
+      - name: Verify replay idempotency
+        run: make streaming-replay-test
+      - name: Smoke test Streamlit
+        run: make dashboard-smoke
+      - run: make evidence-pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-evidence
+          path: |
+            docs/portfolio/evidence.md
+            dbt/target/manifest.json
+            data/lakehouse/manifest.json
+
+  postgres-integration:
+    runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16.4-alpine
         env:
           POSTGRES_USER: finbank
           POSTGRES_PASSWORD: finbank
@@ -20,48 +76,49 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd "pg_isready -U finbank -d finbank"
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
-
+          --health-retries 10
+    env:
+      DB_TARGET: postgres
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: finbank
+      POSTGRES_USER: finbank
+      POSTGRES_PASSWORD: finbank
+      AI_DEMO_MODE: "1"
     steps:
       - uses: actions/checkout@v4
-
       - uses: astral-sh/setup-uv@v5
         with:
-          version: "0.5.26"
-
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: make bootstrap
+      - run: make generate generate-macro-offline generate-cvm-offline validate
+      - run: PGPASSWORD=finbank psql -h localhost -U finbank -d finbank -f sql/postgres_bootstrap.sql
+      - run: make load load-audit dbt
 
-      - name: Install Python dependencies
-        run: |
-          uv venv --allow-existing .venv
-          . .venv/bin/activate
-          uv pip install -r requirements.txt
-          uv pip install -r requirements-dev.txt
-
-      - name: Run Python tests
-        run: |
-          . .venv/bin/activate
-          make test
-
-      - name: Run Ruff
-        run: |
-          . .venv/bin/activate
-          make lint
-
-      - name: Build Rust validator
-        run: cargo build --manifest-path src/rust_validator/Cargo.toml --release
-
-      - name: Smoke dbt parse
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: "5432"
-          POSTGRES_DB: finbank
-          POSTGRES_USER: finbank
-          POSTGRES_PASSWORD: finbank
-        run: |
-          . .venv/bin/activate
-          make dbt-parse
+  infrastructure-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive infra
+      - run: terraform -chdir=infra/aws init -backend=false
+      - run: terraform -chdir=infra/aws validate
+      - run: docker compose config --quiet
+      - run: docker compose -f orchestration/airflow/docker-compose.yml config --quiet
+      - name: Build reproducible Airflow image
+        run: docker compose -f orchestration/airflow/docker-compose.yml build airflow-standalone
+      - name: Smoke orchestration inside the image
+        run: >-
+          docker compose -f orchestration/airflow/docker-compose.yml run --rm --no-deps
+          airflow-standalone python -m orchestration.local_pipeline sources
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+      - run: uvx pip-audit -r requirements.txt

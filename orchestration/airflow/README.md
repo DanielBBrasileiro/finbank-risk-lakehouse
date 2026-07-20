@@ -1,8 +1,10 @@
 # Airflow Local Orchestration
 
-This folder adds an optional Apache Airflow view of the same local-first FinBank workflow.
+This folder provides an operational local Apache Airflow view of the deterministic FinBank batch workflow.
 
-Airflow is included for recruiter familiarity and scheduler/DAG literacy. Dagster remains in the repo as the asset-oriented orchestration view. Both call the same Make targets so the project does not fork its business logic.
+The image contains the required Python packages, dbt adapters, project source, and a compiled Rust validator. It
+does not depend on a host `.venv`, Cargo installation, or project bind mount. Airflow and Dagster both call
+`orchestration/local_pipeline.py`, so their execution order stays aligned.
 
 ## Run
 
@@ -13,4 +15,14 @@ docker compose --env-file orchestration/airflow/.env -f orchestration/airflow/do
 
 Open `http://localhost:8080` and trigger `finbank_local_portfolio_pipeline`.
 
-If Docker bind mounts from `Documents` fail on macOS File Provider paths, set `FINBANK_PROJECT_ROOT` in `.env` to a materialized copy outside `Documents`.
+The DAG runs deterministic sources, Rust contracts, Bronze/Silver/Gold materialization, DuckDB loading, `dbt
+build`, and offline AI evaluation. Generated data and Airflow metadata use named Docker volumes.
+
+This is a single-container local demonstration. It does not represent a production Airflow deployment: there is
+no distributed executor, external metadata database, remote log store, secrets backend, or cloud deployment.
+
+To rebuild after source changes:
+
+```bash
+docker compose -f orchestration/airflow/docker-compose.yml up --build
+```

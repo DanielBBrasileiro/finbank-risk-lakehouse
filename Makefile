@@ -1,4 +1,4 @@
-.PHONY: up down install bootstrap doctor generate generate-macro-offline publish-bronze build-lakehouse load validate dbt dbt-parse dbt-docs pipeline pipeline-local warehouse-local test lint ai-eval dagster run-dashboard rust-build rust-validate streaming-demo evidence-pack airflow-test demo
+.PHONY: up down install bootstrap doctor clean-demo generate generate-macro-offline generate-cvm-offline publish-bronze build-lakehouse load load-audit validate dbt dbt-parse dbt-docs pipeline pipeline-local demo-local warehouse-local test test-all lint sql-lint ai-eval dagster run-dashboard dashboard-smoke rust-build rust-test rust-validate streaming-demo streaming-replay-test evidence-pack airflow-test demo
 
 PYTHON ?= .venv/bin/python
 DBT ?= .venv/bin/dbt
@@ -18,12 +18,17 @@ install:
 	. .venv/bin/activate && pip install -r requirements.txt
 
 bootstrap:
+	# requirements-dev.txt remains a human-readable mirror; uv uses pyproject.toml + uv.lock.
 	uv venv --allow-existing .venv
-	uv pip install -r requirements.txt
-	uv pip install -r requirements-dev.txt
+	uv sync --all-extras --locked
 
 doctor:
 	$(PYTHON) scripts/doctor.py
+
+clean-demo:
+	rm -rf data/raw data/bronze data/processed data/lakehouse data/streaming data/ai_audit data/qdrant_db
+	rm -f data/warehouse.duckdb data/warehouse.duckdb.wal
+	rm -rf dbt/target dbt/logs
 
 generate:
 	$(PYTHON) src/python_ingestion/synthetic_generator.py
@@ -47,6 +52,9 @@ load:
 		$(PYTHON) src/python_ingestion/load_to_postgres.py; \
 	fi
 
+load-audit:
+	DB_TARGET=$(DB_TARGET) DBT_TARGET=$(DBT_TARGET) $(PYTHON) src/python_ingestion/load_audit_logs.py
+
 validate: rust-build rust-validate
 
 dbt:
@@ -58,11 +66,19 @@ dbt-parse:
 dbt-docs:
 	cd dbt && DBT_SEND_ANONYMOUS_USAGE_STATS=false ../$(DBT) docs generate --profiles-dir .
 
-pipeline: generate validate publish-bronze load dbt
+pipeline: generate validate publish-bronze load load-audit dbt
 
 pipeline-local: generate generate-macro-offline generate-cvm-offline validate publish-bronze build-lakehouse ai-eval
 
-warehouse-local: load dbt
+warehouse-local: load load-audit dbt
+
+demo-local: generate generate-macro-offline generate-cvm-offline validate publish-bronze build-lakehouse
+	$(MAKE) AI_DEMO_MODE=1 AI_AUDIT_PATH=data/ai_audit/copilot_audit.jsonl ai-eval
+	$(MAKE) DB_TARGET=duckdb load
+	$(MAKE) DB_TARGET=duckdb load-audit
+	$(MAKE) DB_TARGET=duckdb dbt
+	$(MAKE) streaming-demo
+	@echo "Local demo ready. Run 'DB_TARGET=duckdb make run-dashboard'."
 
 test:
 	@for test_file in tests/test_*.py; do \
@@ -73,6 +89,14 @@ test:
 lint:
 	$(RUFF) check src dashboards tests
 
+sql-lint:
+	cd dbt && DBT_SEND_ANONYMOUS_USAGE_STATS=false DBT_TARGET=duckdb ../.venv/bin/sqlfluff lint models tests
+
+test-all: test lint rust-test
+	$(MAKE) DB_TARGET=duckdb dbt
+	$(MAKE) streaming-replay-test
+	$(MAKE) dashboard-smoke
+
 ai-eval:
 	$(PYTHON) -m src.ai_assistant.eval_runner --eval-file ai/evals/risk_copilot.yml
 
@@ -80,6 +104,9 @@ streaming-demo:
 	@echo "Running Ingestion Stream Simulation..."
 	$(PYTHON) -m src.streaming.producer
 	DB_TARGET=duckdb DUCKDB_PATH=data/warehouse.duckdb $(PYTHON) -m src.streaming.consumer --one-shot
+
+streaming-replay-test:
+	DB_TARGET=duckdb DUCKDB_PATH=data/warehouse.duckdb $(PYTHON) -m pytest tests/test_real_streaming.py -q
 
 evidence-pack:
 	$(PYTHON) scripts/evidence_pack.py
@@ -90,14 +117,20 @@ airflow-test:
 dagster:
 	$(DAGSTER) dev -f orchestration/dagster_defs.py
 
-demo: pipeline
+demo: demo-local
 	@echo "Pipeline ready. Run 'make run-dashboard' to open the Streamlit demo."
 
 run-dashboard:
-	$(STREAMLIT) run dashboards/streamlit_app.py
+	PYTHONPATH=. DB_TARGET=$${DB_TARGET:-duckdb} AI_AUDIT_PATH=$${AI_AUDIT_PATH:-data/ai_audit/copilot_audit.jsonl} $(STREAMLIT) run dashboards/streamlit_app.py
+
+dashboard-smoke:
+	PYTHONPATH=. DB_TARGET=duckdb AI_DEMO_MODE=1 $(PYTHON) scripts/smoke_dashboard.py
 
 rust-build:
 	cd src/rust_validator && cargo build --release
+
+rust-test:
+	cd src/rust_validator && cargo test --all-targets
 
 rust-validate:
 	$(RUST_VALIDATOR) validate --input data/raw/customers.csv --schema schemas/customers_schema.json

@@ -29,8 +29,10 @@ def test_build_evidence_markdown_includes_recruiter_ready_proof_points(tmp_path:
     def fake_git_output(_project_root: Path, command: list[str]) -> str:
         if command == ["git", "branch", "--show-current"]:
             return "professional-data-engineering-case"
-        if command == ["git", "rev-parse", "--short", "HEAD"]:
-            return "abc1234"
+        if command == ["git", "rev-parse", "HEAD"]:
+            return "abc1234567890"
+        if command == ["git", "status", "--porcelain"]:
+            return ""
         if command == ["git", "remote", "get-url", "origin"]:
             return "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter.git"
         return ""
@@ -40,8 +42,9 @@ def test_build_evidence_markdown_includes_recruiter_ready_proof_points(tmp_path:
     markdown = build_evidence_markdown(project_root=tmp_path)
 
     assert "Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter" in markdown
-    assert "Current commit: abc1234" in markdown
-    assert "GitHub Actions CI: configured" in markdown
+    assert "Current commit: abc1234567890" in markdown
+    assert "GitHub Actions workflow: present" in markdown
+    assert "Working tree: clean" in markdown
     assert "Verification Commands" in markdown
     assert "`make test`" in markdown
     assert "`make lint`" in markdown
@@ -63,6 +66,7 @@ def test_build_evidence_markdown_counts_nested_screenshots(tmp_path: Path) -> No
 
     assert "portfolio screenshots: 4 captured" in markdown
     assert "`docs/portfolio/screenshots/dbt-docs-lineage.png`" in markdown
+    assert "Artifact SHA-256" in markdown
     assert "Governed AI audit captured" in markdown
 
 

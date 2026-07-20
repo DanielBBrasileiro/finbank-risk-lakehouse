@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -31,8 +33,16 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
         else [f"- Missing `{name}`." for name in missing_screenshots]
     )
     branch = _git_output(project_root, ["git", "branch", "--show-current"])
-    commit = _git_output(project_root, ["git", "rev-parse", "--short", "HEAD"])
+    commit = _git_output(project_root, ["git", "rev-parse", "HEAD"])
+    dirty = bool(_git_output(project_root, ["git", "status", "--porcelain"]))
     remote_url = _normalize_remote_url(_git_output(project_root, ["git", "remote", "get-url", "origin"]))
+    generated_at = datetime.now(UTC).isoformat(timespec="seconds")
+    artifacts = [dbt_manifest, lakehouse_manifest, *dashboard_screenshots]
+    artifact_lines = [
+        f"- `{path.relative_to(project_root)}`: `{_sha256(path)}`"
+        for path in artifacts
+        if path.exists() and path.is_file()
+    ] or ["- No generated artifacts were available for hashing."]
 
     return "\n".join(
         [
@@ -43,14 +53,17 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
             f"- Repository: {remote_url or 'unknown'}",
             f"- Current branch: {branch or 'unknown'}",
             f"- Current commit: {commit or 'unknown'}",
-            f"- GitHub Actions CI: {'configured' if ci_workflow.exists() else 'not configured'}",
+            f"- Generated at (UTC): {generated_at}",
+            f"- Working tree: {'dirty' if dirty else 'clean'}",
+            f"- GitHub Actions workflow: {'present' if ci_workflow.exists() else 'missing'}",
+            f"- CI results: {remote_url + '/actions/workflows/ci.yml' if remote_url else 'unknown'}",
             "",
             "## Local-first demo path",
             "",
             "- Generate synthetic banking data.",
             "- Validate raw CSV contracts with Rust.",
             "- Build local Bronze/Silver/Gold lakehouse layers.",
-            "- Load PostgreSQL and run dbt marts when Docker is available.",
+            "- Load DuckDB or PostgreSQL and build tested dbt marts.",
             "- Run governed AI evals in deterministic offline mode.",
             "",
             "## Artifact Status",
@@ -60,23 +73,29 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
             f"- portfolio screenshots: {len(dashboard_screenshots)} captured",
             *screenshot_lines,
             "",
+            "## Artifact SHA-256",
+            "",
+            *artifact_lines,
+            "",
             "## Verification Commands",
             "",
             "- `make doctor`",
             "- `make test`",
             "- `make lint`",
             "- `AI_DEMO_MODE=1 make ai-eval`",
-            "- `AI_DEMO_MODE=1 make pipeline-local`",
-            "- `make streaming-demo`",
+            "- `AI_DEMO_MODE=1 DB_TARGET=duckdb make demo-local`",
+            "- `make test-all`",
+            "- `make dashboard-smoke`",
             "",
             "## Recruiter Narrative",
             "",
-            "This repository demonstrates a cost-aware data engineering lifecycle: generation, ingestion, "
-            "storage, transformation, serving, governance, orchestration and AI controls.",
+            "This repository demonstrates a verified local data engineering lifecycle: generation, validation, "
+            "layered storage, transformation, serving and governed analytical access. Cloud assets are blueprints.",
             "",
             "## Evidence Captured",
             "",
             *evidence_status_lines,
+            "- Screenshot presence is automated; visual content still requires human review.",
             "",
             "## Publication Checklist",
             "",
@@ -112,6 +131,14 @@ def _normalize_remote_url(remote_url: str) -> str:
     if remote_url.startswith("git@github.com:"):
         return "https://github.com/" + remote_url.removeprefix("git@github.com:")
     return remote_url
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def main() -> None:

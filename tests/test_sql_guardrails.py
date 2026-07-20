@@ -42,3 +42,48 @@ def test_caps_existing_limit_when_it_is_too_large() -> None:
 def test_rejects_unsafe_or_out_of_scope_sql(sql: str) -> None:
     with pytest.raises(SqlGuardrailError):
         build_guarded_query(sql, allowed_schemas=("analytics_marts",), default_limit=100)
+
+
+def test_allows_cte_that_reads_only_from_allowlisted_schema() -> None:
+    sql = (
+        "with exposure as ("
+        "select segment from analytics_marts.mart_customer_exposure"
+        ") select * from exposure"
+    )
+
+    guarded = build_guarded_query(sql, allowed_schemas=("analytics_marts",), default_limit=50)
+
+    assert guarded.endswith("limit 50")
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "select * from analytics_marts.mart_customer_exposure -- trusted query",
+        "select * into temporary_table from analytics_marts.mart_customer_exposure",
+        (
+            "select * from analytics_marts.mart_customer_exposure e "
+            "join customers c on c.customer_id = e.customer_id"
+        ),
+        "select pg_sleep(10)",
+        "select * from analytics_marts.mart_customer_exposure limit all",
+        (
+            "select * from analytics_marts.mart_customer_exposure; "
+            "select * from analytics_marts.mart_daily_transactions"
+        ),
+    ],
+)
+def test_parser_rejects_read_only_bypass_attempts(sql: str) -> None:
+    with pytest.raises(SqlGuardrailError):
+        build_guarded_query(sql, allowed_schemas=("analytics_marts",), default_limit=100)
+
+
+def test_blocked_words_inside_string_literals_do_not_trigger_false_positive() -> None:
+    sql = (
+        "select 'drop update delete' as description "
+        "from analytics_marts.mart_customer_exposure"
+    )
+
+    guarded = build_guarded_query(sql, allowed_schemas=("analytics_marts",), default_limit=10)
+
+    assert guarded.endswith("limit 10")
