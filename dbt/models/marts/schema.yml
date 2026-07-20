@@ -21,21 +21,24 @@ models:
         description: Derived credit risk status based on maximum days past due.
         data_tests:
           - accepted_values:
-              values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+              arguments:
+                values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
       - name: best_risk_rating
         description: Best contractual rating ordered by the canonical AA-to-E risk scale; null without credit exposure.
         data_tests:
           - accepted_values:
-              values: ["AA", "A", "B", "C", "D", "E"]
-              quote: true
+              arguments:
+                values: ["AA", "A", "B", "C", "D", "E"]
+                quote: true
               config:
                 where: "loan_count > 0"
       - name: worst_risk_rating
         description: Worst contractual rating ordered by the canonical AA-to-E risk scale; null without credit exposure.
         data_tests:
           - accepted_values:
-              values: ["AA", "A", "B", "C", "D", "E"]
-              quote: true
+              arguments:
+                values: ["AA", "A", "B", "C", "D", "E"]
+                quote: true
               config:
                 where: "loan_count > 0"
 
@@ -70,12 +73,14 @@ models:
         description: Derived credit risk status from the customer exposure mart.
         data_tests:
           - accepted_values:
-              values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
+              arguments:
+                values: ["NO_CREDIT_EXPOSURE", "PERFORMING", "WATCHLIST", "HIGH_RISK", "DEFAULT_RISK"]
       - name: context_scope
         description: Declares that the macro values are the latest available descriptive observation.
         data_tests:
           - accepted_values:
-              values: ["LATEST_AVAILABLE_OBSERVATION"]
+              arguments:
+                values: ["LATEST_AVAILABLE_OBSERVATION"]
       - name: total_outstanding_balance
         description: Outstanding balance by portfolio status under the latest macro context.
         data_tests:
@@ -93,7 +98,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ["answered", "rejected"]
+              arguments:
+                values: ["answered", "rejected"]
       - name: question
         description: The natural language question submitted by the user.
         data_tests:
@@ -112,7 +118,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ["HEALTHY", "PARTIALLY_BLOCKED", "FULLY_BLOCKED", "ALL_CLOSED"]
+              arguments:
+                values: ["HEALTHY", "PARTIALLY_BLOCKED", "FULLY_BLOCKED", "ALL_CLOSED"]
       - name: total_accounts
         description: Total number of accounts for the customer.
         data_tests:

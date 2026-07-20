@@ -22,12 +22,14 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ["PF_LOW_INCOME", "PF_MASS", "PF_AFFLUENT", "PJ_SMALL", "PJ_MID"]
+              arguments:
+                values: ["PF_LOW_INCOME", "PF_MASS", "PF_AFFLUENT", "PJ_SMALL", "PJ_MID"]
       - name: document_type
         data_tests:
           - not_null
           - accepted_values:
-              values: ["CPF", "CNPJ"]
+              arguments:
+                values: ["CPF", "CNPJ"]
 
   - name: stg_transactions
     columns:
@@ -41,21 +43,25 @@ models:
       - name: customer_id
         data_tests:
           - relationships:
-              to: ref('stg_customers')
-              field: customer_id
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
       - name: account_id
         data_tests:
           - relationships:
-              to: ref('stg_accounts')
-              field: account_id
+              arguments:
+                to: ref('stg_accounts')
+                field: account_id
       - name: channel
         data_tests:
           - accepted_values:
-              values: ["PIX", "CARD", "ATM", "BRANCH", "TED", "APP"]
+              arguments:
+                values: ["PIX", "CARD", "ATM", "BRANCH", "TED", "APP"]
       - name: transaction_type
         data_tests:
           - accepted_values:
-              values: ["DEBIT", "CREDIT", "TRANSFER", "PAYMENT", "WITHDRAWAL"]
+              arguments:
+                values: ["DEBIT", "CREDIT", "TRANSFER", "PAYMENT", "WITHDRAWAL"]
 
   - name: stg_loans
     columns:
@@ -66,12 +72,14 @@ models:
       - name: risk_rating
         data_tests:
           - accepted_values:
-              values: ["AA", "A", "B", "C", "D", "E"]
+              arguments:
+                values: ["AA", "A", "B", "C", "D", "E"]
       - name: customer_id
         data_tests:
           - relationships:
-              to: ref('stg_customers')
-              field: customer_id
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
 
   - name: stg_macro_indicators
     description: Normalized BCB macroeconomic indicators used for credit portfolio context.
@@ -83,7 +91,8 @@ models:
         data_tests:
           - not_null
           - accepted_values:
-              values: ["selic", "credit_free_total"]
+              arguments:
+                values: ["selic", "credit_free_total"]
       - name: indicator_value
         data_tests:
           - not_null
@@ -98,14 +107,17 @@ models:
         data_tests:
           - not_null
           - relationships:
-              to: ref('stg_customers')
-              field: customer_id
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
       - name: account_type
         data_tests:
           - accepted_values:
-              values: ["CHECKING", "SAVINGS", "INVESTMENT"]
+              arguments:
+                values: ["CHECKING", "SAVINGS", "INVESTMENT"]
       - name: status
         data_tests:
           - not_null
           - accepted_values:
-              values: ["ACTIVE", "BLOCKED", "CLOSED"]
+              arguments:
+                values: ["ACTIVE", "BLOCKED", "CLOSED"]
