@@ -111,6 +111,7 @@ The offline mode proposes governed SQL and explains trusted assets. It is not pr
 
 ```bash
 make test                 # Python tests
+make coverage             # Full src coverage, minimum 70%
 make lint                 # Ruff
 make rust-test            # Rust unit tests
 make sql-lint             # SQLFluff with dbt templating

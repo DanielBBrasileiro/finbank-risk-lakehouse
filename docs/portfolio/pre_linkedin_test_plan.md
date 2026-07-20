@@ -119,7 +119,7 @@ make evidence-pack
 
 Expected results:
 
-- Python tests and Ruff pass.
+- Python tests, 70% full-source coverage and Ruff pass.
 - Rust tests and all five input contracts pass.
 - DuckDB raw tables and every dbt model/test build successfully.
 - Replaying the same event batch leaves suspicious-event totals unchanged.

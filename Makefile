@@ -1,4 +1,4 @@
-.PHONY: up down install bootstrap doctor clean-demo generate generate-macro-offline generate-cvm-offline publish-bronze build-lakehouse load load-audit validate dbt dbt-parse dbt-docs pipeline pipeline-local demo-local warehouse-local test test-all lint sql-lint ai-eval dagster run-dashboard dashboard-smoke rust-build rust-test rust-validate streaming-demo streaming-replay-test evidence-pack airflow-test demo
+.PHONY: up down install bootstrap doctor clean-demo generate generate-macro-offline generate-cvm-offline publish-bronze build-lakehouse load load-audit validate dbt dbt-parse dbt-docs pipeline pipeline-local demo-local warehouse-local test coverage test-all lint sql-lint ai-eval dagster run-dashboard dashboard-smoke rust-build rust-test rust-validate streaming-demo streaming-replay-test evidence-pack airflow-test demo
 
 PYTHON ?= .venv/bin/python
 DBT ?= .venv/bin/dbt
@@ -86,13 +86,16 @@ test:
 		$(PYTHON) -m pytest $$test_file -q || exit $$?; \
 	done
 
+coverage:
+	$(PYTHON) -m pytest -q --cov=src --cov-report=term --cov-fail-under=70
+
 lint:
 	$(RUFF) check src dashboards tests
 
 sql-lint:
 	cd dbt && DBT_SEND_ANONYMOUS_USAGE_STATS=false DBT_TARGET=duckdb ../.venv/bin/sqlfluff lint models tests
 
-test-all: test lint rust-test
+test-all: coverage lint sql-lint rust-test
 	$(MAKE) DB_TARGET=duckdb dbt
 	$(MAKE) streaming-replay-test
 	$(MAKE) dashboard-smoke
