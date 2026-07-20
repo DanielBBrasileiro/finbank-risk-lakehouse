@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.python_ingestion.bcb_extractor import normalize_bcb_series, write_offline_macro_sample
+from src.python_ingestion import bcb_extractor
+from src.python_ingestion.bcb_extractor import (
+    fetch_bcb_series,
+    normalize_bcb_series,
+    write_bcb_macro_indicators,
+    write_offline_macro_sample,
+)
 
 
 def test_normalize_bcb_series_adds_business_metadata() -> None:
@@ -24,3 +30,42 @@ def test_write_offline_macro_sample_creates_single_macro_file(tmp_path: Path) ->
     data = pd.read_csv(output)
     assert {"selic", "credit_free_total"}.issubset(set(data["indicator_name"]))
     assert set(data.columns) == {"observation_date", "indicator_name", "series_id", "value"}
+
+
+def test_fetch_bcb_series_uses_official_api_shape(monkeypatch) -> None:
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self):
+            return [{"data": "03/01/2024", "valor": "9.75"}]
+
+    observed = {}
+
+    def fake_get(url: str, timeout: int):
+        observed.update({"url": url, "timeout": timeout})
+        return Response()
+
+    monkeypatch.setattr(bcb_extractor.requests, "get", fake_get)
+
+    result = fetch_bcb_series(11, "01/01/2024", "31/01/2024")
+
+    assert "bcdata.sgs.11" in observed["url"]
+    assert observed["timeout"] == 30
+    assert result.iloc[0]["series_id"] == 11
+    assert result.iloc[0]["valor"] == 9.75
+
+
+def test_write_bcb_macro_indicators_combines_configured_series(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr(
+        bcb_extractor,
+        "fetch_bcb_series",
+        lambda series_id, _start, _end: pd.DataFrame(
+            [{"data": "01/01/2024", "valor": float(series_id)}]
+        ),
+    )
+
+    output = write_bcb_macro_indicators(raw_dir=tmp_path)
+
+    result = pd.read_csv(output)
+    assert set(result["indicator_name"]) == set(bcb_extractor.SERIES)
