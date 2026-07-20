@@ -17,5 +17,11 @@
   ],
   "unique": [
     "customer_id"
-  ]
+  ],
+  "types": {"internal_score": "integer"},
+  "ranges": {"internal_score": {"min": 0, "max": 1000}},
+  "accepted_values": {
+    "document_type": ["CPF", "CNPJ"],
+    "segment": ["PF_LOW_INCOME", "PF_MASS", "PF_AFFLUENT", "PJ_SMALL", "PJ_MID"]
+  }
 }

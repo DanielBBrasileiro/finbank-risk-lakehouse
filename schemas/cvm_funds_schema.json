@@ -15,5 +15,7 @@
   ],
   "unique": [
     "cnpj"
-  ]
+  ],
+  "types": {"net_worth": "number"},
+  "ranges": {"net_worth": {"min": 0}}
 }

@@ -19,5 +19,11 @@
   ],
   "unique": [
     "transaction_id"
-  ]
+  ],
+  "types": {"amount": "number", "is_suspicious": "boolean"},
+  "ranges": {"amount": {"min": 0}},
+  "accepted_values": {
+    "channel": ["PIX", "CARD", "ATM", "BRANCH", "TED", "APP"],
+    "transaction_type": ["DEBIT", "CREDIT", "TRANSFER", "PAYMENT", "WITHDRAWAL"]
+  }
 }

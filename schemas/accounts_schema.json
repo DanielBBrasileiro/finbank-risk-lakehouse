@@ -16,5 +16,9 @@
   ],
   "unique": [
     "account_id"
-  ]
+  ],
+  "accepted_values": {
+    "account_type": ["CHECKING", "SAVINGS", "INVESTMENT"],
+    "status": ["ACTIVE", "BLOCKED", "CLOSED"]
+  }
 }

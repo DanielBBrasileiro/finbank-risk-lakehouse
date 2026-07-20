@@ -25,5 +25,21 @@
   ],
   "unique": [
     "loan_id"
-  ]
+  ],
+  "types": {
+    "principal_amount": "number",
+    "outstanding_balance": "number",
+    "interest_rate": "number",
+    "days_past_due": "integer"
+  },
+  "ranges": {
+    "principal_amount": {"min": 0},
+    "outstanding_balance": {"min": 0},
+    "interest_rate": {"min": 0},
+    "days_past_due": {"min": 0}
+  },
+  "accepted_values": {
+    "product_type": ["PERSONAL_LOAN", "AUTO_LOAN", "MORTGAGE", "WORKING_CAPITAL", "CREDIT_CARD"],
+    "risk_rating": ["AA", "A", "B", "C", "D", "E"]
+  }
 }
