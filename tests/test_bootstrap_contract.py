@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import yaml
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -32,3 +34,10 @@ def test_streaming_demo_uses_local_duckdb() -> None:
     makefile = (PROJECT_ROOT / "Makefile").read_text(encoding="utf-8")
 
     assert "DB_TARGET=duckdb DUCKDB_PATH=data/warehouse.duckdb $(PYTHON) -m src.streaming.consumer" in makefile
+
+
+def test_duckdb_dbt_target_is_serial_for_stable_ci() -> None:
+    profiles = yaml.safe_load((PROJECT_ROOT / "dbt" / "profiles.yml").read_text(encoding="utf-8"))
+
+    duckdb = profiles["finbank_postgres"]["outputs"]["duckdb"]
+    assert duckdb["threads"] == 1

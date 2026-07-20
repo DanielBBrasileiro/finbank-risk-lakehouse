@@ -14,7 +14,7 @@ finbank_postgres:
       type: duckdb
       path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
       schema: "{{ env_var('DBT_SCHEMA', 'analytics') }}"
-      threads: 4
+      threads: 1
     snowflake:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"

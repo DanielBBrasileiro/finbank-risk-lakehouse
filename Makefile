@@ -90,7 +90,7 @@ coverage:
 	$(PYTHON) -m pytest -q --cov=src --cov-report=term --cov-fail-under=70
 
 lint:
-	$(RUFF) check src dashboards tests
+	$(RUFF) check src dashboards tests scripts orchestration databricks
 
 sql-lint:
 	cd dbt && DBT_SEND_ANONYMOUS_USAGE_STATS=false DBT_TARGET=duckdb ../.venv/bin/sqlfluff lint models tests

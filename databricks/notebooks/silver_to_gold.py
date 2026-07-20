@@ -2,7 +2,12 @@
 # DBTITLE 1,FinBank Risk Lakehouse - Silver to Gold Features
 # Reads Silver Delta tables, aggregates key risk metrics, and writes Gold analytical layers.
 
+from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+
+spark = SparkSession.getActiveSession()
+if spark is None:
+    raise RuntimeError("An active Databricks Spark session is required")
 
 DEFAULT_DPD_THRESHOLD = 90
 HIGH_RISK_DPD_THRESHOLD = 30

@@ -2,27 +2,32 @@
 # DBTITLE 1,FinBank Risk Lakehouse - Bronze to Silver Ingestion
 # Ingests Bronze Parquet files from S3, cleans and standardizes them, and writes to Silver Delta.
 
+from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
+
+spark = SparkSession.getActiveSession()
+if spark is None:
+    raise RuntimeError("An active Databricks Spark session is required")
 
 def bronze_to_silver(table_name: str, primary_keys: list[str], cleaning_fn=None):
     bronze_path = f"s3://finbank-risk-lake/bronze/{table_name}/"
     silver_path = f"s3://finbank-risk-lake/silver/{table_name}/"
-    
+
     print(f"Processing {table_name} from Bronze to Silver...")
-    
+
     # Read Bronze Parquet data
     df = spark.read.format("parquet").load(bronze_path)
-    
+
     # Standardize column names (lowercase, stripped)
     for col in df.columns:
         df = df.withColumnRenamed(col, col.strip().lower())
-    
+
     # Deduplicate based on primary keys
     deduped = df.dropDuplicates(primary_keys)
-    
+
     # Apply custom cleaning if provided
     silver = cleaning_fn(deduped) if cleaning_fn else deduped
-    
+
     # Add audit columns
     silver = silver.withColumn("ingestion_processed_at", F.current_timestamp())
     
