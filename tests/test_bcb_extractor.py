@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -69,3 +70,16 @@ def test_write_bcb_macro_indicators_combines_configured_series(tmp_path: Path, m
 
     result = pd.read_csv(output)
     assert set(result["indicator_name"]) == set(bcb_extractor.SERIES)
+
+
+def test_bcb_cli_writes_offline_fixture(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["bcb_extractor", "--offline-sample", "--raw-dir", str(tmp_path)],
+    )
+
+    bcb_extractor.main()
+
+    assert (tmp_path / "macro_indicators.csv").exists()
+    assert "Saved macro indicators" in capsys.readouterr().out

@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -76,3 +77,16 @@ def test_write_cvm_funds_normalizes_download(tmp_path: Path, monkeypatch) -> Non
     output = write_cvm_funds(raw_dir=tmp_path)
 
     assert pd.read_csv(output).iloc[0]["fund_name"] == "Fund"
+
+
+def test_cvm_cli_writes_offline_fixture(tmp_path: Path, monkeypatch, capsys) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["cvm_extractor", "--offline-sample", "--raw-dir", str(tmp_path)],
+    )
+
+    cvm_extractor.main()
+
+    assert (tmp_path / "cvm_funds.csv").exists()
+    assert "Saved CVM funds data" in capsys.readouterr().out
