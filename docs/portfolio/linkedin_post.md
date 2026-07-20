@@ -24,7 +24,7 @@ O repositório inclui um demo local determinístico, testes Python com cobertura
 
 AWS, Databricks e Snowflake aparecem como blueprints de evolução. Não apresento esses componentes como ambientes implantados, nem o projeto como sistema bancário de produção. O objetivo é demonstrar decisões de arquitetura e engenharia de forma honesta, executável e auditável.
 
-Código, arquitetura, plano de testes e evidências: [adicione aqui a URL da release]
+Código, arquitetura, plano de testes e evidências: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse/releases/tag/v1.0.0-portfolio
 
 #DataEngineering #AnalyticsEngineering #Python #Rust #dbt #PostgreSQL #DuckDB #Docker #Airflow #DataQuality
 
@@ -36,7 +36,7 @@ Python e Rust cuidam da ingestão e dos contratos; Parquet implementa Bronze/Sil
 
 O repositório inclui demo determinístico, cobertura Python mínima de 70%, contratos Rust, 76 recursos validados no `dbt build`, replay idempotente e CI para DuckDB, PostgreSQL, Airflow, Terraform e segurança.
 
-Os ativos AWS, Databricks e Snowflake são blueprints, não implantações declaradas. Projeto, evidências e plano de testes: [adicione aqui a URL da release]
+Os ativos AWS, Databricks e Snowflake são blueprints, não implantações declaradas. Projeto, evidências e plano de testes: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse/releases/tag/v1.0.0-portfolio
 
 #DataEngineering #dbt #Python #PostgreSQL #DataQuality
 
