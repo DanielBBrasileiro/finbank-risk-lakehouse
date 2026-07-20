@@ -1,4 +1,6 @@
 ARG RUST_VERSION=1.83.0
+ARG AIRFLOW_VERSION=3.1.0
+ARG PYTHON_VERSION=3.12
 FROM rust:${RUST_VERSION}-bookworm AS validator-builder
 
 WORKDIR /build
@@ -6,8 +8,6 @@ COPY src/rust_validator/Cargo.toml src/rust_validator/Cargo.lock ./
 COPY src/rust_validator/src ./src
 RUN cargo build --locked --release
 
-ARG AIRFLOW_VERSION=3.1.0
-ARG PYTHON_VERSION=3.12
 FROM apache/airflow:${AIRFLOW_VERSION}-python${PYTHON_VERSION}
 
 ARG AIRFLOW_VERSION
