@@ -28,7 +28,7 @@ def test_airflow_compose_builds_an_immutable_project_image() -> None:
     assert service["build"]["args"] == {
         "AIRFLOW_VERSION": "3.1.0",
         "PYTHON_VERSION": "3.12",
-        "RUST_VERSION": "1.83.0",
+        "RUST_VERSION": "1.89.0",
     }
     assert service["healthcheck"]["test"]
     assert service["environment"]["DB_TARGET"] == "duckdb"
