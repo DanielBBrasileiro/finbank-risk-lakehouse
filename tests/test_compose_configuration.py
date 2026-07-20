@@ -27,7 +27,7 @@ def test_airflow_compose_builds_an_immutable_project_image() -> None:
     assert service["build"]["dockerfile"] == "orchestration/airflow/Dockerfile"
     assert service["build"]["args"] == {
         "AIRFLOW_VERSION": "3.1.0",
-        "PYTHON_VERSION": "3.12",
+        "PYTHON_VERSION": "3.11",
         "RUST_VERSION": "1.89.0",
     }
     assert service["healthcheck"]["test"]
