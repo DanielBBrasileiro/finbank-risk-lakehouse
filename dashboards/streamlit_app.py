@@ -431,15 +431,10 @@ if not exposure.empty:
             "showing which questions were processed, which files were retrieved, and which queries were blocked by guardrails."
         )
 
-        # Try DB first, then fall back to local JSONL
+        # Prefer the live local audit trail; the dbt mart is the persisted fallback.
         def read_audit_logs() -> pd.DataFrame:
             import json
 
-            # DB source
-            db_df = read_sql("select * from analytics_marts.mart_ai_copilot_audit", required=False)
-            if not db_df.empty:
-                return db_df
-            # JSONL fallback
             audit_file = Path(os.getenv("AI_AUDIT_PATH", "data/ai_audit/copilot_audit.jsonl"))
             if audit_file.exists() and audit_file.stat().st_size > 0:
                 records = []
@@ -455,7 +450,7 @@ if not exposure.empty:
                     df = df.rename(columns={"timestamp": "audit_timestamp"})
                     df["audit_timestamp"] = pd.to_datetime(df["audit_timestamp"])
                     return df
-            return pd.DataFrame()
+            return read_sql("select * from analytics_marts.mart_ai_copilot_audit", required=False)
 
         audits = read_audit_logs()
 
@@ -473,7 +468,8 @@ if not exposure.empty:
                 delta=f"{rejection_rate:.1f}% block rate",
                 delta_color="inverse",
             )
-            a3.metric("System Mode", "Governed Hybrid")
+            demo_mode = os.getenv("AI_DEMO_MODE", "0").lower() in {"1", "true", "yes"}
+            a3.metric("System Mode", "Offline Governed" if demo_mode else "Governed Provider")
 
             # Outcome breakdown chart
             audit_status_labels = {"answered": "Answered", "rejected": "Blocked by Guardrails"}
