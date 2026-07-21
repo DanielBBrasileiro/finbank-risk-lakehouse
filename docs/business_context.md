@@ -8,10 +8,10 @@ The project simulates a financial institution that needs a reliable data platfor
 2. Which customers currently concentrate high-risk or default-risk exposure?
 3. Which transaction channels present abnormal behavior?
 4. What macroeconomic context accompanies the current portfolio snapshot?
-5. Can an analyst ask natural language questions over trusted risk marts?
+5. Can an analyst query the risk marts in natural language without bypassing SQL controls?
 
-## Why this matters
+## Analytical boundary
 
-Banks depend on trusted, explainable and governed data pipelines. This project demonstrates how engineering decisions connect directly to risk monitoring, financial analysis and analytical governance.
+The project focuses on preparing and serving consistent risk indicators. It covers data contracts, lineage, reconciliation and controlled analytical access.
 
-The project does not infer causality between macroeconomic indicators and credit outcomes. Historical migration and causal analysis require repeated portfolio snapshots and a separate statistical design.
+Macroeconomic indicators are shown as context for the current portfolio snapshot. Inferring causality or risk migration would require repeated observations and a separate statistical design.
