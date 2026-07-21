@@ -58,7 +58,7 @@ DB_TARGET=duckdb make run-dashboard
 - Release tag: `v1.0.1-portfolio`
 - Release commit: target of the annotated tag; the exact SHA is recorded in the attached `evidence.md`.
 - Validation date (UTC): `2026-07-21`
-- Python tests: `80` passed
+- Python tests: `82` passed
 - Python coverage: `70.68%`
 - Rust tests: `2` passed
 - dbt checks: `78` (`62 pass`, `14 success`, `2 no-op`)
