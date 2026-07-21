@@ -13,7 +13,7 @@ def test_bootstrap_installs_shared_dev_requirements() -> None:
     assert requirements_dev.exists()
     dev_requirements = requirements_dev.read_text(encoding="utf-8")
 
-    assert "pytest==9.0.2" in dev_requirements
+    assert "pytest==9.0.3" in dev_requirements
     assert "ruff==0.14.6" in dev_requirements
     assert "requirements-dev.txt" in makefile
     assert "run: make bootstrap" in ci_workflow
