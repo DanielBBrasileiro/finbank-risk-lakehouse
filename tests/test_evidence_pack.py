@@ -34,14 +34,14 @@ def test_build_evidence_markdown_includes_recruiter_ready_proof_points(tmp_path:
         if command == ["git", "status", "--porcelain"]:
             return ""
         if command == ["git", "remote", "get-url", "origin"]:
-            return "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter.git"
+            return "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse.git"
         return ""
 
     monkeypatch.setattr(evidence_pack, "_git_output", fake_git_output)
 
     markdown = build_evidence_markdown(project_root=tmp_path)
 
-    assert "Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse-starter" in markdown
+    assert "Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse" in markdown
     assert "Current commit: abc1234567890" in markdown
     assert "GitHub Actions workflow: present" in markdown
     assert "Working tree: clean" in markdown

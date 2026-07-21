@@ -3,6 +3,10 @@
 __pycache__/
 *.pyc
 *.egg-info/
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
 .env
 data/raw/*.csv
 data/bronze/
