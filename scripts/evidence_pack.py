@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 VALIDATION_RECORD = Path("data/validation/last_success.json")
+PUBLIC_REPOSITORY_URL = "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse"
 
 
 def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
@@ -146,11 +147,12 @@ def collect_validation_metrics(*, project_root: Path = Path(".")) -> dict:
 
     coverage_output = _command_output(
         project_root,
-        [str(project_root / ".venv" / "bin" / "python"), "-m", "coverage", "report", "--format=total"],
+        [str(project_root / ".venv" / "bin" / "python"), "-m", "coverage", "json", "-o", "-"],
     )
-    coverage_match = re.search(r"\d+(?:\.\d+)?", coverage_output)
-    if not coverage_match:
-        raise RuntimeError("Could not determine Python coverage from .coverage.")
+    try:
+        coverage_percent = json.loads(coverage_output)["totals"]["percent_covered"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise RuntimeError("Could not determine Python coverage from .coverage.") from exc
 
     rust_output = _command_output(
         project_root,
@@ -173,7 +175,7 @@ def collect_validation_metrics(*, project_root: Path = Path(".")) -> dict:
         "commit": commit,
         "python_tests_collected": int(collected_match.group(1)),
         "python_tests_passed": int(collected_match.group(1)),
-        "python_coverage_percent": float(coverage_match.group()),
+        "python_coverage_percent": round(float(coverage_percent), 2),
         "rust_tests_passed": rust_tests,
         "dbt_checks_total": sum(dbt_statuses.values()),
         "dbt_statuses": dbt_statuses,
@@ -242,7 +244,9 @@ def _normalize_remote_url(remote_url: str) -> str:
         remote_url = remote_url[:-4]
     if remote_url.startswith("git@github.com:"):
         return "https://github.com/" + remote_url.removeprefix("git@github.com:")
-    return remote_url
+    if remote_url.startswith(("https://github.com/", "http://github.com/")):
+        return remote_url
+    return PUBLIC_REPOSITORY_URL
 
 
 def _sha256(path: Path) -> str:

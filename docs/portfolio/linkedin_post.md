@@ -20,7 +20,7 @@ Some of the engineering decisions behind it:
 
 The repository also includes automated checks for Python, Rust, dbt, DuckDB, PostgreSQL, Airflow, Terraform, dependency security and CodeQL.
 
-Final release validation: `{{PYTHON_TESTS_PASSED}}` Python tests passed with `{{PYTHON_COVERAGE_PERCENT}}%` source coverage, `{{RUST_TESTS_PASSED}}` Rust tests passed, and `{{DBT_CHECKS_TOTAL}}` dbt checks completed (`{{DBT_STATUS_SUMMARY}}`).
+Final release validation: 80 Python tests passed with 70.68% source coverage, 2 Rust tests passed, and 78 dbt checks completed (62 passed tests, 14 successful resources and 2 no-op exposures).
 
 The default workflow uses synthetic data and runs locally without paid cloud services. AWS, Databricks and Snowflake are documented as evolution paths rather than deployed environments.
 
@@ -52,7 +52,7 @@ Algumas decisões de engenharia do projeto:
 
 O repositório também inclui verificações automatizadas para Python, Rust, dbt, DuckDB, PostgreSQL, Airflow, Terraform, segurança de dependências e CodeQL.
 
-Validação final da release: `{{PYTHON_TESTS_PASSED}}` testes Python aprovados, cobertura de código-fonte de `{{PYTHON_COVERAGE_PERCENT}}%`, `{{RUST_TESTS_PASSED}}` testes Rust aprovados e `{{DBT_CHECKS_TOTAL}}` verificações dbt concluídas (`{{DBT_STATUS_SUMMARY}}`).
+Validação final da release: 80 testes Python aprovados, cobertura de código-fonte de 70,68%, 2 testes Rust aprovados e 78 verificações dbt concluídas (62 testes aprovados, 14 recursos executados com sucesso e 2 exposições sem operação).
 
 O fluxo padrão usa dados sintéticos e roda localmente sem serviços cloud pagos. AWS, Databricks e Snowflake estão documentados como caminhos de evolução, não como ambientes implantados.
 
@@ -80,14 +80,14 @@ Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
 - Release: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse/releases/tag/v1.0.1-portfolio
 - Release commit: target of `v1.0.1-portfolio`; the exact SHA is included in the attached evidence pack.
 - Tag: `v1.0.1-portfolio`
-- Validation date (UTC): `{{VALIDATION_DATE_UTC}}`
-- Python tests: `{{PYTHON_TESTS_PASSED}}` passed
-- Python coverage: `{{PYTHON_COVERAGE_PERCENT}}%`
-- Rust tests: `{{RUST_TESTS_PASSED}}` passed
-- dbt checks: `{{DBT_CHECKS_TOTAL}}` (`{{DBT_STATUS_SUMMARY}}`)
-- Streaming replay: `{{STREAMING_REPLAY_STATUS}}`
-- Streamlit smoke test: `{{DASHBOARD_SMOKE_STATUS}}`
-- CI: `{{CI_STATUS}}`
-- CodeQL: `{{CODEQL_STATUS}}`
+- Validation date (UTC): `2026-07-21`
+- Python tests: `80` passed
+- Python coverage: `70.68%`
+- Rust tests: `2` passed
+- dbt checks: `78` (`62 pass`, `14 success`, `2 no-op`)
+- Streaming replay: passed
+- Streamlit smoke test: passed
+- CI: green on the tagged release commit
+- CodeQL: green on the tagged release commit
 - Preferred language: publish the English version and keep the Portuguese version for a follow-up comment or repost.
 - Suggested attachments: architecture overview, dashboard, dbt lineage, copilot controls and GitHub Actions summary.

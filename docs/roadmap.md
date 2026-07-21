@@ -22,7 +22,7 @@
 - [x] Consolidate the architecture diagram into one reusable Mermaid source.
 - [x] Add release metrics to the generated evidence pack.
 - [x] Standardize LinkedIn, CV, carousel and release materials.
-- [ ] Publish the validated `v1.0.1-portfolio` tag and release.
+- [x] Publish the validated `v1.0.1-portfolio` tag and release.
 
 ## Post-v1 Evolution
 

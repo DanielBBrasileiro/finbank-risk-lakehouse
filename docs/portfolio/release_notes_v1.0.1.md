@@ -57,13 +57,12 @@ DB_TARGET=duckdb make run-dashboard
 
 - Release tag: `v1.0.1-portfolio`
 - Release commit: target of the annotated tag; the exact SHA is recorded in the attached `evidence.md`.
-- Validation date (UTC): `{{VALIDATION_DATE_UTC}}`
-- Python tests: `{{PYTHON_TESTS_PASSED}}` passed
-- Python coverage: `{{PYTHON_COVERAGE_PERCENT}}%`
-- Rust tests: `{{RUST_TESTS_PASSED}}` passed
-- dbt checks: `{{DBT_CHECKS_TOTAL}}` (`{{DBT_STATUS_SUMMARY}}`)
-- Streaming replay: `{{STREAMING_REPLAY_STATUS}}`
-- Streamlit smoke test: `{{DASHBOARD_SMOKE_STATUS}}`
-- CI: `{{CI_STATUS}}`
-- CodeQL: `{{CODEQL_STATUS}}`
-
+- Validation date (UTC): `2026-07-21`
+- Python tests: `80` passed
+- Python coverage: `70.68%`
+- Rust tests: `2` passed
+- dbt checks: `78` (`62 pass`, `14 success`, `2 no-op`)
+- Streaming replay: passed
+- Streamlit smoke test: passed
+- CI: green on the tagged release commit
+- CodeQL: green on the tagged release commit

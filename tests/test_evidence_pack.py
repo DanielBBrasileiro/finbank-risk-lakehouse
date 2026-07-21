@@ -84,6 +84,32 @@ def test_git_output_allows_slow_local_git(monkeypatch, tmp_path: Path) -> None:
     assert observed["timeout"] >= 30
 
 
+def test_normalize_remote_url_uses_public_url_for_local_clone() -> None:
+    assert evidence_pack._normalize_remote_url("/tmp/finbank-risk-lakehouse-starter") == (
+        "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse"
+    )
+
+
+def test_collect_validation_metrics_preserves_coverage_precision(tmp_path: Path, monkeypatch) -> None:
+    responses = iter(
+        [
+            "abc123",
+            "80 tests collected",
+            '{"totals": {"percent_covered": 70.68201948627103}}',
+            "accepts_rows: test\nrejects_rows: test",
+        ]
+    )
+    monkeypatch.setattr(evidence_pack, "_git_output", lambda *_args, **_kwargs: next(responses))
+    monkeypatch.setattr(evidence_pack, "_command_output", lambda *_args, **_kwargs: next(responses))
+    run_results = tmp_path / "dbt" / "target" / "run_results.json"
+    run_results.parent.mkdir(parents=True)
+    run_results.write_text('{"results": [{"status": "pass"}]}', encoding="utf-8")
+
+    metrics = evidence_pack.collect_validation_metrics(project_root=tmp_path)
+
+    assert metrics["python_coverage_percent"] == 70.68
+
+
 def test_validation_markdown_marks_matching_commit() -> None:
     validation = {
         "validated_at_utc": "2026-07-21T12:00:00+00:00",
