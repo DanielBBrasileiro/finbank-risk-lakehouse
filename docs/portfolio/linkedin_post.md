@@ -1,41 +1,93 @@
 # LinkedIn Publication Copy
 
-## Recommended Post
+## Recommended English Post
 
-Concluí uma primeira versão do **FinBank Risk Lakehouse**, projeto em que acompanho dados bancários desde a ingestão até o dashboard de risco.
+Data projects should not end in a notebook.
 
-Usei dados sintéticos para trabalhar um problema concreto: manter exposição de crédito, inadimplência, saúde de contas e transações suspeitas com definições consistentes ao longo de todo o pipeline.
+I built **FinBank Risk Lakehouse**, a local-first data platform that follows banking data from ingestion to analyst-facing risk products.
 
-O fluxo principal ficou assim:
+The project addresses a practical challenge: keeping definitions of credit exposure, delinquency, account health and suspicious transactions consistent across the entire pipeline.
 
-**Python e Rust** para ingestão e validação dos contratos; **Parquet** nas camadas Bronze, Silver e Gold; **DuckDB/PostgreSQL e dbt** no warehouse; e **Streamlit** na apresentação dos dados. Também implementei replay idempotente de eventos e um copiloto analítico limitado a SQL somente leitura, com allowlist e registro das interações.
+Some of the engineering decisions behind it:
 
-Uma parte importante do trabalho foi testar as fronteiras entre essas etapas. O pipeline rejeita lotes inválidos antes da carga, reconcilia os totais entre origem e marts e evita duplicação quando um lote de eventos é reprocessado.
+- Python handles ingestion and deterministic data generation.
+- Rust validates source contracts before warehouse loading.
+- Parquet supports Bronze, Silver and Gold layers.
+- DuckDB, PostgreSQL and dbt produce tested analytical marts.
+- Event batches can be replayed without duplicating suspicious-activity results.
+- A Streamlit application serves the risk products.
+- The analytical copilot is restricted to read-only SQL, allowlisted relations and auditable interactions.
 
-O repositório pode ser executado localmente sem serviços pagos. A release passou por 77 testes Python, 70,68% de cobertura, testes Rust e 78 verificações do dbt, além dos jobs de DuckDB, PostgreSQL, Airflow, Terraform e segurança no GitHub Actions.
+The repository also includes automated checks for Python, Rust, dbt, DuckDB, PostgreSQL, Airflow, Terraform, dependency security and CodeQL.
 
-AWS, Databricks e Snowflake estão no projeto como caminhos de evolução, não como ambientes já implantados.
+Final release validation: `{{PYTHON_TESTS_PASSED}}` Python tests passed with `{{PYTHON_COVERAGE_PERCENT}}%` source coverage, `{{RUST_TESTS_PASSED}}` Rust tests passed, and `{{DBT_CHECKS_TOTAL}}` dbt checks completed (`{{DBT_STATUS_SUMMARY}}`).
 
-Código, arquitetura e instruções para executar: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
+The default workflow uses synthetic data and runs locally without paid cloud services. AWS, Databricks and Snowflake are documented as evolution paths rather than deployed environments.
 
-#DataEngineering #AnalyticsEngineering #Python #dbt #DuckDB #PostgreSQL
+Repository and architecture:
 
-## Short Version
+https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
 
-Concluí a primeira versão do **FinBank Risk Lakehouse**, um projeto de engenharia de dados para monitoramento de risco bancário com dados sintéticos.
+Which part would you review first: data contracts, reconciliation, idempotency or analytical access controls?
 
-Python e Rust cuidam da ingestão e dos contratos; Parquet implementa Bronze/Silver/Gold; DuckDB, PostgreSQL e dbt atendem o warehouse; e Streamlit apresenta os resultados. O projeto também inclui replay idempotente de eventos e um copiloto limitado a SQL somente leitura.
+#DataEngineering #AnalyticsEngineering #dbt #Python #FinancialServices
 
-O fluxo pode ser reproduzido localmente e passou por 77 testes Python, testes Rust e 78 verificações do dbt, além do CI para DuckDB, PostgreSQL, Airflow, Terraform e segurança.
+## Portuguese Version
 
-Projeto e instruções: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
+Projetos de dados não deveriam terminar em um notebook.
 
-#DataEngineering #dbt #Python #PostgreSQL #DataQuality
+Construí o **FinBank Risk Lakehouse**, uma plataforma local-first que acompanha dados bancários desde a ingestão até produtos analíticos de risco usados por analistas.
 
-## Suggested Visual Order
+O projeto trata um problema prático: manter consistentes, ao longo de todo o pipeline, as definições de exposição de crédito, inadimplência, saúde de contas e transações suspeitas.
 
-1. Dashboard de risco de crédito.
-2. Diagrama de arquitetura do README.
-3. Linhagem do dbt.
-4. Dashboard de governança do copiloto.
-5. Resultado verde do GitHub Actions na release.
+Algumas decisões de engenharia do projeto:
+
+- Python realiza a ingestão e a geração determinística dos dados.
+- Rust valida os contratos de origem antes da carga no warehouse.
+- Parquet sustenta as camadas Bronze, Silver e Gold.
+- DuckDB, PostgreSQL e dbt produzem marts analíticos testados.
+- Lotes de eventos podem ser reprocessados sem duplicar resultados de atividade suspeita.
+- Uma aplicação Streamlit apresenta os produtos de risco.
+- O copiloto analítico é limitado a SQL somente leitura, relações permitidas e interações auditáveis.
+
+O repositório também inclui verificações automatizadas para Python, Rust, dbt, DuckDB, PostgreSQL, Airflow, Terraform, segurança de dependências e CodeQL.
+
+Validação final da release: `{{PYTHON_TESTS_PASSED}}` testes Python aprovados, cobertura de código-fonte de `{{PYTHON_COVERAGE_PERCENT}}%`, `{{RUST_TESTS_PASSED}}` testes Rust aprovados e `{{DBT_CHECKS_TOTAL}}` verificações dbt concluídas (`{{DBT_STATUS_SUMMARY}}`).
+
+O fluxo padrão usa dados sintéticos e roda localmente sem serviços cloud pagos. AWS, Databricks e Snowflake estão documentados como caminhos de evolução, não como ambientes implantados.
+
+Repositório e arquitetura:
+
+https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
+
+Qual parte você revisaria primeiro: contratos de dados, reconciliação, idempotência ou controles de acesso analítico?
+
+#DataEngineering #AnalyticsEngineering #dbt #Python #FinancialServices
+
+## Short English Version
+
+I built **FinBank Risk Lakehouse**, a local-first project that follows synthetic banking data from Python ingestion and Rust contracts to tested dbt marts, Streamlit risk products and controlled analytical access.
+
+The pipeline checks source contracts before loading, reconciles source and mart totals, and replays suspicious-event batches without duplication. DuckDB is the default local path; PostgreSQL is verified in CI. Cloud assets remain documented blueprints.
+
+Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
+
+#DataEngineering #dbt #Python #FinancialServices
+
+## Publication Notes
+
+- Repository: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse
+- Release: https://github.com/DanielBBrasileiro/finbank-risk-lakehouse/releases/tag/v1.0.1-portfolio
+- Release commit: target of `v1.0.1-portfolio`; the exact SHA is included in the attached evidence pack.
+- Tag: `v1.0.1-portfolio`
+- Validation date (UTC): `{{VALIDATION_DATE_UTC}}`
+- Python tests: `{{PYTHON_TESTS_PASSED}}` passed
+- Python coverage: `{{PYTHON_COVERAGE_PERCENT}}%`
+- Rust tests: `{{RUST_TESTS_PASSED}}` passed
+- dbt checks: `{{DBT_CHECKS_TOTAL}}` (`{{DBT_STATUS_SUMMARY}}`)
+- Streaming replay: `{{STREAMING_REPLAY_STATUS}}`
+- Streamlit smoke test: `{{DASHBOARD_SMOKE_STATUS}}`
+- CI: `{{CI_STATUS}}`
+- CodeQL: `{{CODEQL_STATUS}}`
+- Preferred language: publish the English version and keep the Portuguese version for a follow-up comment or repost.
+- Suggested attachments: architecture overview, dashboard, dbt lineage, copilot controls and GitHub Actions summary.

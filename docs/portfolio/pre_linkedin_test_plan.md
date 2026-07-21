@@ -79,6 +79,23 @@ Confirm that primary keys survive loading, relationship tests pass and the read-
 Publish only when:
 
 - CI and CodeQL are green on `main`.
-- The protected `main` branch is clean and tagged `v1.0.0-portfolio`.
+- The protected `main` branch is clean and tagged `v1.0.1-portfolio`.
 - The repository description, topics, license, screenshots and release are visible.
 - The LinkedIn text makes no production-scale, real-data or deployed-cloud claim.
+
+## 7. Final Checklist
+
+- [ ] `main` is clean.
+- [ ] CI is green.
+- [ ] CodeQL is green.
+- [ ] The release tag matches `main`.
+- [ ] Test counts are current.
+- [ ] Coverage is current.
+- [ ] Screenshots are readable.
+- [ ] The repository description is set.
+- [ ] Repository topics are set.
+- [ ] The license is visible.
+- [ ] Release notes are published.
+- [ ] The LinkedIn post contains no unsupported claims.
+- [ ] The repository is pinned on the GitHub profile. Manual; does not block technical validation.
+- [ ] The repository is added to LinkedIn Featured. Manual; does not block technical validation.

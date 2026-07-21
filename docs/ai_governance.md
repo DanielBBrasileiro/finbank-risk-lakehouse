@@ -34,6 +34,8 @@ The useful boundary is narrow: assist an analyst without giving the model unrest
 - constrained by SQL policy;
 - useful in an analyst workflow without bypassing governance.
 
+The copilot is not a credit-decision model and has not been validated for regulated use. Provider-backed execution is optional; deterministic offline evaluation remains the release path.
+
 ## Local Commands
 
 ```bash

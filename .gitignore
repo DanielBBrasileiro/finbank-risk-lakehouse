@@ -6,6 +6,7 @@ __pycache__/
 .coverage
 .coverage.*
 .pytest_cache/
+.playwright-cli/
 htmlcov/
 .env
 data/raw/*.csv

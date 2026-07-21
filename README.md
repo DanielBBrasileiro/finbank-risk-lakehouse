@@ -25,28 +25,11 @@ The pipeline rejects invalid batches before loading, reconciles source and mart 
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    S["Synthetic + BCB/CVM sources"] --> R["Raw CSV"]
-    R --> V["Rust contracts"]
-    V --> B["Bronze"]
-    B --> SI["Silver"]
-    SI --> G["Gold features"]
-    V --> W["DuckDB / PostgreSQL"]
-    W --> D["dbt staging"]
-    D --> I["dbt intermediate"]
-    I --> M["Tested marts"]
-    M --> UI["Streamlit dashboard"]
-    M --> AI["Analytical copilot"]
-    E["Event batch / Redpanda"] --> C["Idempotent consumer"]
-    C --> W
-    AI --> A["Audit trail"]
-    A --> W
-```
+![FinBank architecture overview](docs/portfolio/screenshots/architecture-overview.svg)
 
 The local lakehouse and the warehouse start from the same validated batch. One path materializes Bronze, Silver and Gold files; the other builds staging, intermediate and mart models with dbt.
 
-See the detailed [architecture and deployment boundaries](docs/architecture_mermaid.md).
+See the [architecture and deployment boundaries](docs/architecture_mermaid.md) or review the reusable [Mermaid source](docs/diagrams/architecture-overview.mmd).
 
 ## Run Locally
 
@@ -171,6 +154,8 @@ docs/                   architecture, governance and portfolio evidence
 FinBank is not a production banking system. It has not been load-tested at banking scale, does not process real customer data, and does not include regulated-model validation, production SLAs or a deployed managed-cloud environment.
 
 Use the [pre-publication test plan](docs/portfolio/pre_linkedin_test_plan.md) and [demo walkthrough](docs/portfolio/demo_script.md) before presenting the release.
+
+Publication materials are versioned with the project: [LinkedIn copy](docs/portfolio/linkedin_post.md), [carousel plan](docs/portfolio/linkedin_carousel.md) and [v1.0.1 release notes](docs/portfolio/release_notes_v1.0.1.md).
 
 ## License
 

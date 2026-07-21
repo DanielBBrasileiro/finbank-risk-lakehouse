@@ -4,6 +4,8 @@
 
 FinBank follows banking data from ingestion to risk reporting. It covers credit exposure, delinquency, account health, suspicious transactions and analyst questions over the resulting marts.
 
+Its central engineering concern is consistency across stages: source contracts run before loading, source and mart totals are reconciled, event replay is idempotent, and analytical access is read-only and audited.
+
 The complete demo runs locally with synthetic data. PostgreSQL and the containerized Airflow path are checked in CI, while AWS, Snowflake and Databricks remain documented blueprints.
 
 ## Engineering Decisions

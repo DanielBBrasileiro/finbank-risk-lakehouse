@@ -19,6 +19,8 @@ Points to cover:
 5. The copilot uses repository metadata, read-only SQL rules and an audit trail.
 6. Cloud examples are kept outside the local execution path.
 
+Close by stating the boundary: all customer and transaction records are synthetic; the project has no banking-scale validation, production SLA, regulated credit-decision claim or deployed managed-cloud environment.
+
 ## Docker warehouse path
 
 ```bash

@@ -16,4 +16,4 @@
 - Construí produtos de dados testados com dbt em DuckDB e PostgreSQL para exposição de crédito, inadimplência, saúde de contas, transações suspeitas e contexto macroeconômico, com linhagem e reconciliações documentadas.
 - Implementei processamento idempotente de eventos, dashboard em Streamlit e copiloto analítico com SQL somente leitura, trilha de auditoria, avaliações determinísticas e verificações automatizadas no CI.
 
-Use the English version for an English CV. Keep the local-first and synthetic-data scope available for interviews; do not add AWS deployment or production-scale claims unless those environments are actually deployed and measured.
+Use the English version for an English CV. In interviews, state that the default path uses synthetic data and DuckDB, PostgreSQL is verified in CI, and cloud assets are blueprints. Do not add banking-scale, production-SLA, regulated-model or deployed-cloud claims without measured evidence.
