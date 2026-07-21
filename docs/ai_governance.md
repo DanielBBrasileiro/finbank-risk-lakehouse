@@ -1,10 +1,10 @@
-# Governed AI Risk Copilot
+# Analytical Copilot Controls
 
 ## Goal
 
-The AI component demonstrates that AI can be integrated into a data platform with controls that a risk, finance or analytics team could review.
+The copilot answers questions about project data while keeping retrieval, SQL execution and audit behavior explicit.
 
-The copilot is designed to answer questions about trusted project assets:
+Its context is limited to:
 
 - dbt marts and model documentation;
 - data dictionary and schema files;
@@ -15,7 +15,7 @@ The copilot is designed to answer questions about trusted project assets:
 
 - Offline deterministic mode works without external API keys.
 - Retrieval is limited to local project files.
-- SQL generation is allowlisted to governed marts.
+- SQL generation is allowlisted to documented marts.
 - Only read-only `SELECT` and `WITH` statements are allowed.
 - Multi-statement SQL is rejected.
 - Destructive keywords such as `delete`, `drop`, `truncate`, `insert` and `update` are blocked.
@@ -24,11 +24,11 @@ The copilot is designed to answer questions about trusted project assets:
 - Audit records default to `data/ai_audit/copilot_audit.jsonl` and include question, citations, guarded SQL, response and status.
 - Evaluation cases run from `ai/evals/risk_copilot.yml`.
 
-## Why This Matters For Recruiters
+## Design Rationale
 
-The goal is not to show that an LLM can produce text. The goal is to show that AI usage can be:
+The useful boundary is narrow: assist an analyst without giving the model unrestricted database access. That means the feature must be:
 
-- scoped to trusted data products;
+- scoped to known data products;
 - tested;
 - explainable through citations;
 - constrained by SQL policy;

@@ -1,4 +1,4 @@
-# FinBank Recruiter Demo Script
+# FinBank Demo Script
 
 ## Local-first path
 
@@ -10,14 +10,14 @@ make evidence-pack
 DB_TARGET=duckdb make run-dashboard
 ```
 
-Talk track:
+Points to cover:
 
-1. The platform starts with a banking risk problem, not a generic data stack.
-2. The pipeline follows the data engineering lifecycle from source generation through serving.
+1. The pipeline starts from the reporting needs in `docs/business_context.md`.
+2. The local command runs source generation, validation, storage, transformation and serving.
 3. Rust contracts reject invalid input before publication; dbt relationships, domains and reconciliations protect analytical outputs.
 4. The event replay is idempotent, so rerunning a batch does not inflate suspicious-activity totals.
-5. The copilot uses trusted context, read-only SQL policy and an auditable decision trail.
-6. Cloud vendors are represented through IaC, DDL and runbooks while the public demo remains free.
+5. The copilot uses repository metadata, read-only SQL rules and an audit trail.
+6. Cloud examples are kept outside the local execution path.
 
 ## Docker warehouse path
 
@@ -28,4 +28,4 @@ make dbt
 make run-dashboard
 ```
 
-Use this path when Docker is running and the reviewer wants to inspect the PostgreSQL integration. The default reviewer path remains DuckDB because it has no service dependency.
+Use this path when Docker is running and PostgreSQL is part of the demonstration. DuckDB remains the default because it has no service dependency.
