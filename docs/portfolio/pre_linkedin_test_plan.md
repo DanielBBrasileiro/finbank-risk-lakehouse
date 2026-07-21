@@ -38,6 +38,7 @@ Pass criteria:
 make clean-demo
 AI_DEMO_MODE=1 DB_TARGET=duckdb make demo-local
 make test-all
+make security-audit
 make evidence-pack
 ```
 
@@ -49,6 +50,7 @@ Pass criteria:
 - Replaying the same event batch does not change suspicious-event totals.
 - Python coverage remains at or above 70%.
 - Ruff, SQLFluff, Rust tests and the Streamlit health check pass.
+- The complete locked dependency set has no known vulnerability reported by `pip-audit`.
 - The evidence artifact contains the release commit and SHA-256 hashes.
 
 ## 4. PostgreSQL Integration

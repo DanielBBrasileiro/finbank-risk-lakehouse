@@ -38,8 +38,8 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.0.0",
     "ruff==0.14.6",
-    "sqlfluff==3.5.0",
-    "sqlfluff-templater-dbt==3.5.0",
+    "sqlfluff==4.2.0",
+    "sqlfluff-templater-dbt==4.2.0",
 ]
 
 [build-system]
