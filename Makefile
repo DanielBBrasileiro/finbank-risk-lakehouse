@@ -1,4 +1,4 @@
-.PHONY: up down install bootstrap doctor clean-demo generate generate-macro-offline generate-cvm-offline publish-bronze build-lakehouse load load-audit validate dbt dbt-parse dbt-docs pipeline pipeline-local demo-local warehouse-local test coverage test-all lint sql-lint ai-eval dagster run-dashboard dashboard-smoke rust-build rust-test rust-validate streaming-demo streaming-replay-test evidence-pack airflow-test demo
+.PHONY: up down install bootstrap doctor clean-demo generate generate-macro-offline generate-cvm-offline publish-bronze build-lakehouse load load-audit validate dbt dbt-parse dbt-docs pipeline pipeline-local demo-local warehouse-local test coverage test-all lint sql-lint security-audit ai-eval dagster run-dashboard dashboard-smoke rust-build rust-test rust-validate streaming-demo streaming-replay-test evidence-pack airflow-test demo
 
 PYTHON ?= .venv/bin/python
 DBT ?= .venv/bin/dbt
@@ -94,6 +94,11 @@ lint:
 
 sql-lint:
 	cd dbt && DBT_SEND_ANONYMOUS_USAGE_STATS=false DBT_TARGET=duckdb ../.venv/bin/sqlfluff lint models tests
+
+security-audit:
+	@tmp=$$(mktemp); trap 'rm -f "$$tmp"' EXIT; \
+		uv export --all-extras --locked --no-emit-project --no-hashes --output-file "$$tmp" >/dev/null; \
+		uvx pip-audit -r "$$tmp"
 
 test-all: coverage lint sql-lint rust-test
 	$(MAKE) DB_TARGET=duckdb dbt

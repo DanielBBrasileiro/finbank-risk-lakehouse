@@ -98,6 +98,7 @@ make coverage             # Full src coverage, minimum 70%
 make lint                 # Ruff
 make rust-test            # Rust unit tests
 make sql-lint             # SQLFluff with dbt templating
+make security-audit       # Full locked dependency set
 make streaming-replay-test
 make dashboard-smoke
 make test-all
