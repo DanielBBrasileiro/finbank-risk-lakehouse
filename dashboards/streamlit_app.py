@@ -179,6 +179,7 @@ if not exposure.empty:
             "WATCHLIST": "Watchlist",
             "HIGH_RISK": "High Risk",
             "DEFAULT_RISK": "Default Risk",
+            "NO_CREDIT_EXPOSURE": "No Exposure",
         }
 
         with c1:
@@ -202,6 +203,7 @@ if not exposure.empty:
                     "Watchlist": "#636EFA",
                     "High Risk": "#EF553B",
                     "Default Risk": "#AB63FA",
+                    "No Exposure": "#FFA15A",
                 },
             )
             fig_bar.update_layout(
@@ -209,7 +211,7 @@ if not exposure.empty:
                 yaxis_tickformat=",.0f",
                 legend_title_text="Risk Status",
             )
-            st.plotly_chart(fig_bar, use_container_width=True)
+            st.plotly_chart(fig_bar, width="stretch")
 
         with c2:
             st.subheader("Risk Distribution")
@@ -234,7 +236,8 @@ if not exposure.empty:
                 textinfo="percent+label",
                 hovertemplate="%{label}: R$ %{value:,.2f}<extra></extra>",
             )
-            st.plotly_chart(fig_pie, use_container_width=True)
+            fig_pie.update_layout(showlegend=False)
+            st.plotly_chart(fig_pie, width="stretch")
 
     with tab2:
         # Transaction timeline
@@ -278,7 +281,7 @@ if not exposure.empty:
                 legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
                 hovermode="x unified",
             )
-            st.plotly_chart(fig_line, use_container_width=True)
+            st.plotly_chart(fig_line, width="stretch")
         else:
             st.info("No transaction data available.")
 
@@ -307,7 +310,7 @@ if not exposure.empty:
                         }
                     ),
                     hide_index=True,
-                    use_container_width=True,
+                    width="stretch",
                 )
         else:
             st.info(
@@ -375,8 +378,11 @@ if not exposure.empty:
                         "All Closed": "#636EFA",
                     },
                 )
-                fig_ah_bar.update_layout(legend_title_text="Health Status")
-                st.plotly_chart(fig_ah_bar, use_container_width=True)
+                fig_ah_bar.update_layout(
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
+                    legend_title_text="",
+                )
+                st.plotly_chart(fig_ah_bar, width="stretch")
 
             with ah2:
                 st.subheader("Health Distribution")
@@ -400,7 +406,8 @@ if not exposure.empty:
                     textinfo="percent+label",
                     hovertemplate="%{label}: %{value} customers<extra></extra>",
                 )
-                st.plotly_chart(fig_ah_pie, use_container_width=True)
+                fig_ah_pie.update_layout(showlegend=False)
+                st.plotly_chart(fig_ah_pie, width="stretch")
 
             st.markdown("---")
             st.markdown("### Active Ratio by State")
@@ -420,7 +427,7 @@ if not exposure.empty:
                 yaxis_ticksuffix="%",
                 xaxis_categoryorder="category ascending",
             )
-            st.plotly_chart(fig_ah_state, use_container_width=True)
+            st.plotly_chart(fig_ah_state, width="stretch")
         else:
             st.info("No account health data available. Run `make pipeline` and `make dbt` first.")
 
@@ -488,8 +495,8 @@ if not exposure.empty:
                 template="plotly_dark",
                 color_discrete_map={"Answered": "#00CC96", "Blocked by Guardrails": "#EF553B"},
             )
-            fig_audit.update_layout(legend_title_text="Query Outcome")
-            st.plotly_chart(fig_audit, use_container_width=True)
+            fig_audit.update_layout(showlegend=False)
+            st.plotly_chart(fig_audit, width="stretch")
 
             # Audit log table
             st.markdown("### Recent Audited Interactions")
@@ -508,7 +515,7 @@ if not exposure.empty:
                     }
                 )
                 .sort_values("Timestamp", ascending=False),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
         else:

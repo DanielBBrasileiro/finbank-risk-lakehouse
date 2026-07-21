@@ -1,6 +1,6 @@
 # Business context
 
-The project simulates a financial institution that needs a reliable data platform for credit risk and portfolio monitoring.
+The project uses synthetic data to simulate a financial institution that needs a consistent data platform for credit risk and portfolio monitoring.
 
 ## Business questions
 
@@ -15,3 +15,5 @@ The project simulates a financial institution that needs a reliable data platfor
 The project focuses on preparing and serving consistent risk indicators. It covers data contracts, lineage, reconciliation and controlled analytical access.
 
 Macroeconomic indicators are shown as context for the current portfolio snapshot. Inferring causality or risk migration would require repeated observations and a separate statistical design.
+
+The current scope does not include real customer data, banking-scale validation, production SLAs or regulated credit decisions.

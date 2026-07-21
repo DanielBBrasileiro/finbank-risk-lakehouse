@@ -1,7 +1,7 @@
 [project]
 name = "finbank-risk-lakehouse"
-version = "1.0.0"
-description = "A recruiter-ready banking risk lakehouse and governed AI copilot portfolio project."
+version = "1.0.1"
+description = "A local-first banking risk data platform with tested analytical products and controlled data access."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.12"

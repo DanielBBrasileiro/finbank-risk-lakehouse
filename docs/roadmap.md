@@ -16,6 +16,14 @@
 - [x] Publish architecture, test plan, screenshots, demo script and honest scope.
 - [x] Verify the full DuckDB demo and PostgreSQL integration from clean runners.
 
+## v1.0.1 Publication Closeout
+
+- [x] Align package metadata and public technical scope.
+- [x] Consolidate the architecture diagram into one reusable Mermaid source.
+- [x] Add release metrics to the generated evidence pack.
+- [x] Standardize LinkedIn, CV, carousel and release materials.
+- [x] Publish the validated `v1.0.1-portfolio` tag and release.
+
 ## Post-v1 Evolution
 
 - [ ] Add scheduled ingestion with source freshness alerts and operational SLIs.

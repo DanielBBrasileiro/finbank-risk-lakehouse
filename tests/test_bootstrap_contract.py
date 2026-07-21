@@ -1,3 +1,4 @@
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -41,3 +42,24 @@ def test_duckdb_dbt_target_is_serial_for_stable_ci() -> None:
 
     duckdb = profiles["finbank_postgres"]["outputs"]["duckdb"]
     assert duckdb["threads"] == 1
+
+
+def test_release_metadata_matches_v1_0_1_scope() -> None:
+    project = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+
+    assert project["version"] == "1.0.1"
+    assert project["description"] == (
+        "A local-first banking risk data platform with tested analytical products and controlled data access."
+    )
+
+
+def test_env_example_has_unique_runtime_variables() -> None:
+    assignments = [
+        line.split("=", 1)[0]
+        for line in (PROJECT_ROOT / ".env.example").read_text(encoding="utf-8").splitlines()
+        if line and not line.startswith("#") and "=" in line
+    ]
+
+    assert len(assignments) == len(set(assignments))
+    assert "KAFKA_BROKER" in assignments
+    assert "KAFKA_BOOTSTRAP_SERVERS" not in assignments

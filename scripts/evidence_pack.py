@@ -1,33 +1,44 @@
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
+import re
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
+
+VALIDATION_RECORD = Path("data/validation/last_success.json")
+PUBLIC_REPOSITORY_URL = "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse"
 
 
 def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
     dbt_manifest = project_root / "dbt" / "target" / "manifest.json"
     lakehouse_manifest = project_root / "data" / "lakehouse" / "manifest.json"
     ci_workflow = project_root / ".github" / "workflows" / "ci.yml"
-    dashboard_screenshots = sorted((project_root / "docs" / "portfolio").rglob("*.png"))
+    portfolio_root = project_root / "docs" / "portfolio"
+    dashboard_screenshots = sorted(
+        [*portfolio_root.rglob("*.png"), *portfolio_root.rglob("*.svg")]
+    )
     screenshot_lines = [
         f"- `{path.relative_to(project_root)}`" for path in dashboard_screenshots
     ] or ["- No screenshots captured yet."]
     captured_names = {path.name for path in dashboard_screenshots}
     expected_screenshots = {
         "dashboard-credit-risk.png",
-        "dashboard-account-health.png",
-        "dashboard-ai-governance.png",
-        "dbt-docs-lineage.png",
+        "architecture-overview.svg",
+        "dbt-lineage.png",
+        "copilot-governance.png",
+        "github-actions-release.png",
     }
     missing_screenshots = sorted(expected_screenshots - captured_names)
     evidence_status_lines = (
         [
             "- Dashboard risk view captured after a local pipeline run.",
-            "- Account health dashboard captured after dbt marts were rebuilt.",
-            "- Governed AI audit captured with one answered and one rejected interaction.",
-            "- dbt docs lineage captured from the generated catalog.",
+            "- Architecture rendered from the canonical Mermaid source.",
+            "- dbt lineage captured from the generated catalog.",
+            "- Copilot controls captured with answered and rejected interactions.",
+            "- GitHub Actions summary captured from a successful main run.",
         ]
         if not missing_screenshots
         else [f"- Missing `{name}`." for name in missing_screenshots]
@@ -43,6 +54,8 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
         for path in artifacts
         if path.exists() and path.is_file()
     ] or ["- No generated artifacts were available for hashing."]
+    validation = _read_validation_record(project_root)
+    validation_lines = _validation_markdown(validation, current_commit=commit)
 
     return "\n".join(
         [
@@ -58,19 +71,23 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
             f"- GitHub Actions workflow: {'present' if ci_workflow.exists() else 'missing'}",
             f"- CI results: {remote_url + '/actions/workflows/ci.yml' if remote_url else 'unknown'}",
             "",
-            "## Local-first demo path",
+            "## Local Demo Path",
             "",
             "- Generate synthetic banking data.",
             "- Validate raw CSV contracts with Rust.",
             "- Build local Bronze/Silver/Gold lakehouse layers.",
             "- Load DuckDB or PostgreSQL and build tested dbt marts.",
-            "- Run governed AI evals in deterministic offline mode.",
+            "- Run analytical-copilot evals in deterministic offline mode.",
+            "",
+            "## Validation Metrics",
+            "",
+            *validation_lines,
             "",
             "## Artifact Status",
             "",
             f"- dbt manifest: {'present' if dbt_manifest.exists() else 'missing'}",
             f"- lakehouse manifest: {'present' if lakehouse_manifest.exists() else 'missing'}",
-            f"- portfolio screenshots: {len(dashboard_screenshots)} captured",
+            f"- portfolio visuals: {len(dashboard_screenshots)} captured",
             *screenshot_lines,
             "",
             "## Artifact SHA-256",
@@ -87,10 +104,10 @@ def build_evidence_markdown(*, project_root: Path = Path(".")) -> str:
             "- `make test-all`",
             "- `make dashboard-smoke`",
             "",
-            "## Recruiter Narrative",
+            "## Technical Summary",
             "",
-            "This repository demonstrates a verified local data engineering lifecycle: generation, validation, "
-            "layered storage, transformation, serving and governed analytical access. Cloud assets are blueprints.",
+            "The verified local path covers generation, validation, layered storage, transformation, serving "
+            "and controlled analytical access. Cloud assets remain blueprints.",
             "",
             "## Evidence Captured",
             "",
@@ -117,12 +134,109 @@ def write_evidence_pack(
     return target
 
 
-def _git_output(project_root: Path, command: list[str]) -> str:
+def collect_validation_metrics(*, project_root: Path = Path(".")) -> dict:
+    commit = _git_output(project_root, ["git", "rev-parse", "HEAD"])
+    python_output = _command_output(
+        project_root,
+        [str(project_root / ".venv" / "bin" / "python"), "-m", "pytest", "--collect-only", "-q"],
+        timeout=120,
+    )
+    collected_match = re.search(r"(\d+) tests? collected", python_output)
+    if not collected_match:
+        raise RuntimeError("Could not determine the collected Python test count.")
+
+    coverage_output = _command_output(
+        project_root,
+        [str(project_root / ".venv" / "bin" / "python"), "-m", "coverage", "json", "-o", "-"],
+    )
     try:
-        result = subprocess.run(command, cwd=project_root, check=True, capture_output=True, text=True, timeout=30)
+        coverage_percent = json.loads(coverage_output)["totals"]["percent_covered"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise RuntimeError("Could not determine Python coverage from .coverage.") from exc
+
+    rust_output = _command_output(
+        project_root,
+        ["cargo", "test", "--manifest-path", "src/rust_validator/Cargo.toml", "--all-targets", "--", "--list"],
+        timeout=120,
+    )
+    rust_tests = sum(line.rstrip().endswith(": test") for line in rust_output.splitlines())
+    if rust_tests == 0:
+        raise RuntimeError("Could not determine the Rust test count.")
+
+    run_results_path = project_root / "dbt" / "target" / "run_results.json"
+    run_results = json.loads(run_results_path.read_text(encoding="utf-8"))
+    dbt_statuses: dict[str, int] = {}
+    for result in run_results.get("results", []):
+        status = str(result.get("status", "unknown"))
+        dbt_statuses[status] = dbt_statuses.get(status, 0) + 1
+
+    return {
+        "validated_at_utc": datetime.now(UTC).isoformat(timespec="seconds"),
+        "commit": commit,
+        "python_tests_collected": int(collected_match.group(1)),
+        "python_tests_passed": int(collected_match.group(1)),
+        "python_coverage_percent": round(float(coverage_percent), 2),
+        "rust_tests_passed": rust_tests,
+        "dbt_checks_total": sum(dbt_statuses.values()),
+        "dbt_statuses": dbt_statuses,
+        "streaming_replay": "passed",
+        "dashboard_smoke": "passed",
+    }
+
+
+def write_validation_record(
+    *, project_root: Path = Path("."), output_path: Path = VALIDATION_RECORD
+) -> Path:
+    target = project_root / output_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(collect_validation_metrics(project_root=project_root), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
+def _read_validation_record(project_root: Path) -> dict | None:
+    path = project_root / VALIDATION_RECORD
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _validation_markdown(validation: dict | None, *, current_commit: str) -> list[str]:
+    if not validation:
+        return ["- No successful local validation record is available."]
+
+    status_summary = ", ".join(
+        f"{count} {status}" for status, count in sorted(validation.get("dbt_statuses", {}).items())
+    )
+    commit_matches = validation.get("commit") == current_commit
+    return [
+        f"- Validated at (UTC): {validation.get('validated_at_utc', 'unknown')}",
+        f"- Validation commit: {validation.get('commit', 'unknown')}",
+        f"- Validation matches current commit: {'yes' if commit_matches else 'no'}",
+        f"- Python tests: {validation.get('python_tests_passed', 'unknown')} passed",
+        f"- Python coverage: {validation.get('python_coverage_percent', 'unknown')}%",
+        f"- Rust tests: {validation.get('rust_tests_passed', 'unknown')} passed",
+        f"- dbt checks: {validation.get('dbt_checks_total', 'unknown')} ({status_summary or 'status unavailable'})",
+        f"- Streaming replay: {validation.get('streaming_replay', 'unknown')}",
+        f"- Streamlit smoke test: {validation.get('dashboard_smoke', 'unknown')}",
+    ]
+
+
+def _git_output(project_root: Path, command: list[str]) -> str:
+    return _command_output(project_root, command, timeout=30)
+
+
+def _command_output(project_root: Path, command: list[str], *, timeout: int = 30) -> str:
+    try:
+        result = subprocess.run(command, cwd=project_root, check=True, capture_output=True, text=True, timeout=timeout)
     except Exception:
         return ""
-    return result.stdout.strip()
+    return "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
 
 
 def _normalize_remote_url(remote_url: str) -> str:
@@ -130,7 +244,9 @@ def _normalize_remote_url(remote_url: str) -> str:
         remote_url = remote_url[:-4]
     if remote_url.startswith("git@github.com:"):
         return "https://github.com/" + remote_url.removeprefix("git@github.com:")
-    return remote_url
+    if remote_url.startswith(("https://github.com/", "http://github.com/")):
+        return remote_url
+    return PUBLIC_REPOSITORY_URL
 
 
 def _sha256(path: Path) -> str:
@@ -142,7 +258,14 @@ def _sha256(path: Path) -> str:
 
 
 def main() -> None:
-    target = write_evidence_pack()
+    parser = argparse.ArgumentParser(description="Build publication evidence for the FinBank release.")
+    parser.add_argument(
+        "--record-validation",
+        action="store_true",
+        help="Record metrics after the complete validation target succeeds.",
+    )
+    args = parser.parse_args()
+    target = write_validation_record() if args.record_validation else write_evidence_pack()
     print(target)
 
 

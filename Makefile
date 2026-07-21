@@ -99,6 +99,7 @@ test-all: coverage lint sql-lint rust-test
 	$(MAKE) DB_TARGET=duckdb dbt
 	$(MAKE) streaming-replay-test
 	$(MAKE) dashboard-smoke
+	$(PYTHON) scripts/evidence_pack.py --record-validation
 
 ai-eval:
 	$(PYTHON) -m src.ai_assistant.eval_runner --eval-file ai/evals/risk_copilot.yml

@@ -6,6 +6,7 @@ __pycache__/
 .coverage
 .coverage.*
 .pytest_cache/
+.playwright-cli/
 htmlcov/
 .env
 data/raw/*.csv
@@ -13,6 +14,7 @@ data/bronze/
 data/ai_audit/
 data/lakehouse/
 data/streaming/
+data/validation/
 data/*.duckdb
 data/*.duckdb.wal
 data/qdrant_db/

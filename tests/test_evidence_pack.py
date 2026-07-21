@@ -18,10 +18,10 @@ def test_build_evidence_markdown_includes_portfolio_sections(tmp_path: Path) -> 
     assert "# FinBank Portfolio Evidence Pack" in markdown
     assert "dbt manifest: present" in markdown
     assert "lakehouse manifest: present" in markdown
-    assert "Local-first demo path" in markdown
+    assert "Local Demo Path" in markdown
 
 
-def test_build_evidence_markdown_includes_recruiter_ready_proof_points(tmp_path: Path, monkeypatch) -> None:
+def test_build_evidence_markdown_includes_public_release_proof_points(tmp_path: Path, monkeypatch) -> None:
     workflows = tmp_path / ".github" / "workflows"
     workflows.mkdir(parents=True)
     (workflows / "ci.yml").write_text("name: ci\n", encoding="utf-8")
@@ -58,16 +58,17 @@ def test_build_evidence_markdown_counts_nested_screenshots(tmp_path: Path) -> No
     screenshots = tmp_path / "docs" / "portfolio" / "screenshots"
     screenshots.mkdir(parents=True)
     (screenshots / "dashboard-credit-risk.png").write_bytes(b"fake")
-    (screenshots / "dashboard-account-health.png").write_bytes(b"fake")
-    (screenshots / "dashboard-ai-governance.png").write_bytes(b"fake")
-    (screenshots / "dbt-docs-lineage.png").write_bytes(b"fake")
+    (screenshots / "architecture-overview.svg").write_bytes(b"fake")
+    (screenshots / "copilot-governance.png").write_bytes(b"fake")
+    (screenshots / "dbt-lineage.png").write_bytes(b"fake")
+    (screenshots / "github-actions-release.png").write_bytes(b"fake")
 
     markdown = build_evidence_markdown(project_root=tmp_path)
 
-    assert "portfolio screenshots: 4 captured" in markdown
-    assert "`docs/portfolio/screenshots/dbt-docs-lineage.png`" in markdown
+    assert "portfolio visuals: 5 captured" in markdown
+    assert "`docs/portfolio/screenshots/dbt-lineage.png`" in markdown
     assert "Artifact SHA-256" in markdown
-    assert "Governed AI audit captured" in markdown
+    assert "Copilot controls captured" in markdown
 
 
 def test_git_output_allows_slow_local_git(monkeypatch, tmp_path: Path) -> None:
@@ -81,3 +82,49 @@ def test_git_output_allows_slow_local_git(monkeypatch, tmp_path: Path) -> None:
 
     assert evidence_pack._git_output(tmp_path, ["git", "branch", "--show-current"]) == "main"
     assert observed["timeout"] >= 30
+
+
+def test_normalize_remote_url_uses_public_url_for_local_clone() -> None:
+    assert evidence_pack._normalize_remote_url("/tmp/finbank-risk-lakehouse-starter") == (
+        "https://github.com/DanielBBrasileiro/finbank-risk-lakehouse"
+    )
+
+
+def test_collect_validation_metrics_preserves_coverage_precision(tmp_path: Path, monkeypatch) -> None:
+    responses = iter(
+        [
+            "abc123",
+            "80 tests collected",
+            '{"totals": {"percent_covered": 70.68201948627103}}',
+            "accepts_rows: test\nrejects_rows: test",
+        ]
+    )
+    monkeypatch.setattr(evidence_pack, "_git_output", lambda *_args, **_kwargs: next(responses))
+    monkeypatch.setattr(evidence_pack, "_command_output", lambda *_args, **_kwargs: next(responses))
+    run_results = tmp_path / "dbt" / "target" / "run_results.json"
+    run_results.parent.mkdir(parents=True)
+    run_results.write_text('{"results": [{"status": "pass"}]}', encoding="utf-8")
+
+    metrics = evidence_pack.collect_validation_metrics(project_root=tmp_path)
+
+    assert metrics["python_coverage_percent"] == 70.68
+
+
+def test_validation_markdown_marks_matching_commit() -> None:
+    validation = {
+        "validated_at_utc": "2026-07-21T12:00:00+00:00",
+        "commit": "abc123",
+        "python_tests_passed": 77,
+        "python_coverage_percent": 70.68,
+        "rust_tests_passed": 2,
+        "dbt_checks_total": 78,
+        "dbt_statuses": {"pass": 76, "no-op": 2},
+        "streaming_replay": "passed",
+        "dashboard_smoke": "passed",
+    }
+
+    markdown = "\n".join(evidence_pack._validation_markdown(validation, current_commit="abc123"))
+
+    assert "Validation matches current commit: yes" in markdown
+    assert "Python tests: 77 passed" in markdown
+    assert "dbt checks: 78" in markdown

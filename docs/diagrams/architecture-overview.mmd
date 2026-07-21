@@ -1,0 +1,23 @@
+%%{init: {"theme": "base", "themeVariables": {"fontFamily": "Inter, Arial, sans-serif", "primaryColor": "#E8F1FA", "primaryTextColor": "#172033", "primaryBorderColor": "#3E6B89", "lineColor": "#5B6472", "secondaryColor": "#E9F7EF", "tertiaryColor": "#FFF4DD", "background": "#FFFFFF"}, "flowchart": {"curve": "basis", "nodeSpacing": 36, "rankSpacing": 54}}}%%
+flowchart TB
+    S["Synthetic data<br/>BCB and CVM fixtures"] --> I["Python ingestion"]
+    I --> V["Rust source contracts"]
+    V --> L["Bronze / Silver / Gold<br/>Parquet layers"]
+    V --> W["DuckDB / PostgreSQL"]
+    W --> D["Tested dbt marts"]
+    D --> UI["Streamlit risk products"]
+    D --> AC["Controlled analytical access"]
+    E["Suspicious-event batches"] --> R["Idempotent replay"]
+    R --> W
+    M["Docs, schemas and dbt metadata"] --> AC
+    AC --> A["Read-only SQL<br/>and audit trail"]
+
+    classDef source fill:#FFF4DD,stroke:#A46A00,color:#172033;
+    classDef processing fill:#E8F1FA,stroke:#3E6B89,color:#172033;
+    classDef serving fill:#E9F7EF,stroke:#2F7D57,color:#172033;
+    classDef control fill:#F5ECFA,stroke:#79558D,color:#172033;
+
+    class S,E,M source;
+    class I,V,L,W,D,R processing;
+    class UI serving;
+    class AC,A control;

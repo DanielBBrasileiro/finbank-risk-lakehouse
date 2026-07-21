@@ -2,26 +2,15 @@
 
 The local demo has one verified entry point: `AI_DEMO_MODE=1 DB_TARGET=duckdb make demo-local`.
 
-```mermaid
-flowchart LR
-    S["Synthetic banking data"] --> R["Raw CSV"]
-    B["BCB offline fixture"] --> R
-    C["CVM offline fixture"] --> R
-    R --> V["Rust data contracts"]
-    V --> BR["Bronze immutable batch"]
-    BR --> SI["Silver standardized Parquet"]
-    SI --> GO["Gold analytical features"]
-    V --> W["DuckDB or PostgreSQL raw schema"]
-    W --> ST["dbt staging"]
-    ST --> IN["dbt intermediate"]
-    IN --> MA["Tested dbt marts"]
-    MA --> DA["Streamlit risk dashboard"]
-    MA --> AI["Analytical copilot"]
-    E["Suspicious-event batch or Redpanda"] --> CO["Idempotent consumer"]
-    CO --> W
-    D["Docs, schemas and dbt metadata"] --> AI
-    AI --> AU["Auditable decisions and SQL"]
-    AU --> W
+![FinBank architecture overview](portfolio/screenshots/architecture-overview.svg)
+
+The canonical diagram source is [`docs/diagrams/architecture-overview.mmd`](diagrams/architecture-overview.mmd). Render it from the repository root with:
+
+```bash
+npx -y @mermaid-js/mermaid-cli \
+  -i docs/diagrams/architecture-overview.mmd \
+  -o docs/portfolio/screenshots/architecture-overview.svg \
+  --width 1800 --height 1200 --backgroundColor transparent
 ```
 
 ## Deployment Boundaries
